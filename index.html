@@ -1418,13 +1418,21 @@
         compilePrompt();
       }
 
-      function saveToSlot(slotIndex) {
-        const slots = getSlotsFromStorage();
-        const characterData = getCurrentFormData();
-        slots[slotIndex] = characterData;
-        saveSlotsToStorage(slots);
-        showToast(`Saved to Slot #${slotIndex + 1}: ${characterData.name}`);
-      }
+     function saveToSlot(slotIndex) {
+  const slots = getSlotsFromStorage();
+  const characterData = getCurrentFormData();
+
+  // Enforce a strict character limit (e.g., 24 characters)
+  if (characterData.name) {
+    characterData.name = characterData.name.trim().slice(0, 24);
+  } else {
+    characterData.name = `Slot ${slotIndex + 1}`;
+  }
+
+  slots[slotIndex] = characterData;
+  saveSlotsToStorage(slots);
+  showToast(`Saved to Slot #${slotIndex + 1}: ${characterData.name}`);
+}
 
       function loadFromSlot(slotIndex) {
         const slots = getSlotsFromStorage();
