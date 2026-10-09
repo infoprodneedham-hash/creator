@@ -1,0 +1,10 @@
+# robots.txt for https://characterpromptgen.app/
+
+User-agent: *
+Allow: /
+
+# Disallow access to any potential private or backend assets if added in the future
+# Disallow: /api/
+
+# Sitemap location
+Sitemap: https://characterpromptgen.app/sitemap.xml
