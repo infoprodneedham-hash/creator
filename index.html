@@ -27,6 +27,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   
+  
   <script>
     tailwind.config = {
       theme: {
@@ -105,6 +106,13 @@
 
       <!-- Quick Action Controls -->
       <div class="flex items-center gap-2">
+        <button id="btnQuickExportCSV" title="Export characters to CSV spreadsheet" class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-200 hover:border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 text-sm font-semibold transition shadow-sm">
+          <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+          </svg>
+          <span>Export CSV</span>
+        </button>
+
         <button id="btnRandomizeTop" title="Randomize all traits" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-studio-200 hover:border-studio-300 bg-white text-studio-700 hover:bg-studio-50 text-sm font-medium transition shadow-sm">
           <svg class="w-4 h-4 text-studio-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.678 48.678 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7c-.017.22-.032.441-.046.662M4.5 12c0 1.232.046 2.453.138 3.662a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7c.017-.22.032-.441.046-.662M12 4.5v15" />
@@ -145,7 +153,25 @@
         </h1>
         <p class="text-studio-600 text-base sm:text-lg leading-relaxed mb-6 font-normal">
           Designed specifically for digital creators, 3D artists, comic illustrators, and game designers striving to break free from character drift across Midjourney, Flux, and Stable Diffusion. Build multi-dimensional human characters with anatomically anchored tokens, deliberate art direction, environmental backdrops, and seed-locking syntactic cues.
-        </p><br><p>PersonaCraft is 100% free forever—with zero paid plans, subscriptions, premium upgrades, or annoying newsletter signups required to use any feature. This application is provided strictly as-is, and all prompt creation, output generation, and subsequent media use remain entirely at the sole discretion and responsibility of the end user. The developer assumes no liability or responsibility for flawed, inaccurate, or inappropriate usage, content, or prompt outcomes generated through the platform.</p>
+        </p>
+
+        <!-- Guarantee & Local Storage Policy Banners -->
+        <div class="mb-5 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+          <div class="p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-100 text-indigo-900 leading-relaxed">
+            <span class="font-bold flex items-center gap-1.5 mb-1 text-indigo-800">
+              <svg class="w-4 h-4 text-indigo-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              100% Free Forever &amp; Usage Terms
+            </span>
+            PersonaCraft is 100% free forever—with zero paid plans, subscriptions, premium upgrades, or annoying newsletter signups. Use is entirely at your own responsibility; the developer accepts no liability for flawed, incorrect, or inappropriate usage.
+          </div>
+          <div class="p-3.5 rounded-xl bg-amber-50/70 border border-amber-100 text-amber-900 leading-relaxed">
+            <span class="font-bold flex items-center gap-1.5 mb-1 text-amber-800">
+              <svg class="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+              Local Browser Cache Storage Notice
+            </span>
+            All 30 prompt slots are stored strictly in this browser’s local storage cache. Clearing cache or resetting device history removes saved data at your own risk. Use the built-in <strong>JSON</strong> or <strong>CSV export</strong> to backup externally.
+          </div>
+        </div>
 
         <!-- 4-Pillar Studio Value Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2 border-t border-studio-100">
@@ -756,7 +782,15 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <!-- Backup Export / Import buttons -->
+          <!-- Export CSV button -->
+          <button id="btnExportSlotsCSV" class="px-3 py-1.5 rounded-lg border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-xs font-semibold text-emerald-800 flex items-center gap-1.5 shadow-sm transition">
+            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+            </svg>
+            Export CSV
+          </button>
+
+          <!-- Backup Export JSON button -->
           <button id="btnExportSlots" class="px-3 py-1.5 rounded-lg border border-studio-200 bg-white hover:bg-studio-50 text-xs font-semibold text-studio-700 flex items-center gap-1.5 shadow-sm transition">
             <svg class="w-3.5 h-3.5 text-studio-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -1642,10 +1676,129 @@
           dlAnchor.click();
           dlAnchor.remove();
           showToast('Exported 30-slot character vault!');
+      });
+
+      // Export CSV routine for all populated character slots
+      function exportSlotsToCSV() {
+        const slots = getSlotsFromStorage();
+        const headers = [
+          'Slot Number',
+          'Slot Name',
+          'Saved Timestamp',
+          'Art Style',
+          'Gender Identity',
+          'Age Bracket',
+          'Ethnicity',
+          'Skin Tone',
+          'Face Jawline',
+          'Eyes',
+          'Nose',
+          'Lips',
+          'Anatomical Marks',
+          'Hair Length',
+          'Hair Texture',
+          'Hair Color',
+          'Height',
+          'Body Build',
+          'Clothing Style',
+          'Garments',
+          'Wardrobe Palette',
+          'Environment',
+          'Framing',
+          'Lens',
+          'Lighting',
+          'Aspect Ratio',
+          'Engine Tuning',
+          'Full Generated Prompt'
+        ];
+
+        // Format CSV values safely escaping quotes and commas
+        const escapeCSV = (val) => {
+          if (val === null || val === undefined) return '""';
+          const str = String(val).replace(/"/g, '""');
+          return `"${str}"`;
+        };
+
+        const rows = [];
+        rows.push(headers.map(escapeCSV).join(','));
+
+        slots.forEach((slot, idx) => {
+          if (slot && slot.traits) {
+            const t = slot.traits;
+            
+            // Re-synthesize prompt blueprint for the CSV export row
+            const mediumToken = `An artwork rendered in ${t.trait_artstyle || ''}.`;
+            const subjectToken = `A definitive character portrayal of ${slot.name || 'character'}, a ${t.trait_gender || ''} ${t.trait_age || ''} of ${t.trait_ethnicity || ''}, featuring ${t.trait_skintone || ''}.`;
+            const faceToken = `Facial architecture: ${t.trait_faceshape || ''}, ${t.trait_eyes || ''}, ${t.trait_nose || ''}, ${t.trait_lips || ''}. Distinguishing details: ${t.trait_marks || ''}.`;
+            const hairToken = `Hairstyle: ${t.trait_hairlength || ''}, ${t.trait_hairtexture || ''}, dyed in ${t.trait_haircolor || ''}.`;
+            const bodyToken = `Physique: ${t.trait_height || ''}, ${t.trait_build || ''}.`;
+            const wardrobeToken = `Wardrobe & styling: ${t.trait_clothing_style || ''}, ${t.trait_garments || ''}, styled ${t.trait_wardrobe_palette || ''}.`;
+            const envToken = `Environment & staging: ${t.trait_environment || ''}.`;
+            const cameraToken = `Framing & optics: ${t.trait_framing || ''}, ${t.trait_lens || ''}. Staging & atmosphere: ${t.trait_lighting || ''}.`;
+
+            let compiled = `${mediumToken} ${subjectToken} ${faceToken} ${hairToken} ${bodyToken} ${wardrobeToken} ${envToken} ${cameraToken} ${t.param_engine || ''} ${t.param_ar || ''}`;
+            compiled = compiled.replace(/\s+/g, ' ').trim();
+
+            const rowData = [
+              idx + 1,
+              slot.name || `Persona Slot ${idx + 1}`,
+              slot.timestamp || '',
+              t.trait_artstyle || '',
+              t.trait_gender || '',
+              t.trait_age || '',
+              t.trait_ethnicity || '',
+              t.trait_skintone || '',
+              t.trait_faceshape || '',
+              t.trait_eyes || '',
+              t.trait_nose || '',
+              t.trait_lips || '',
+              t.trait_marks || '',
+              t.trait_hairlength || '',
+              t.trait_hairtexture || '',
+              t.trait_haircolor || '',
+              t.trait_height || '',
+              t.trait_build || '',
+              t.trait_clothing_style || '',
+              t.trait_garments || '',
+              t.trait_wardrobe_palette || '',
+              t.trait_environment || '',
+              t.trait_framing || '',
+              t.trait_lens || '',
+              t.trait_lighting || '',
+              t.param_ar || '',
+              t.param_engine || '',
+              compiled
+            ];
+            rows.push(rowData.map(escapeCSV).join(','));
+          }
         });
 
-        // Import JSON file
-        document.getElementById('importFileInput').addEventListener('change', function(e) {
+        if (rows.length === 1) {
+          showToast('No characters saved in slots to export to CSV yet!', true);
+          return;
+        }
+
+        const csvContent = '\uFEFF' + rows.join('\r\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `personacraft_character_vault_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showToast('Exported Character Vault as CSV!');
+      }
+
+      document.getElementById('btnExportSlotsCSV').addEventListener('click', exportSlotsToCSV);
+      const topCsvBtn = document.getElementById('btnQuickExportCSV');
+      if (topCsvBtn) {
+        topCsvBtn.addEventListener('click', exportSlotsToCSV);
+      }
+
+      // Import JSON file
+      document.getElementById('importFileInput').addEventListener('change', function(e) {
           const file = e.target.files[0];
           if (!file) return;
           const reader = new FileReader();
