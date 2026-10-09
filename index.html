@@ -1,0 +1,1681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PersonaCraft Studio — Consistent Character Prompt Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          colors: {
+            studio: {
+              50: '#f8fafc',
+              100: '#f1f5f9',
+              200: '#e2e8f0',
+              300: '#cbd5e1',
+              400: '#94a3b8',
+              500: '#64748b',
+              600: '#475569',
+              700: '#334155',
+              800: '#1e293b',
+              900: '#0f172a',
+              brand: '#6366f1',
+              brandLight: '#e0e7ff',
+              accent: '#0ea5e9'
+            }
+          },
+          boxShadow: {
+            'card': '0 2px 10px -2px rgba(15, 23, 42, 0.05), 0 1px 3px -1px rgba(15, 23, 42, 0.05)',
+            'card-hover': '0 12px 30px -8px rgba(99, 102, 241, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.04)',
+            'drawer': '0 -10px 40px -10px rgba(15, 23, 42, 0.15)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    html { scroll-behavior: smooth; }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    @keyframes subtlePulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+    .animate-subtle {
+      animation: subtlePulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
+</head>
+
+<body class="bg-studio-50 text-studio-900 font-sans antialiased pb-36">
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-studio-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-sky-400 flex items-center justify-center text-white shadow-md shadow-indigo-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+          </svg>
+        </div>
+        <div>
+          <span class="text-lg font-bold tracking-tight bg-gradient-to-r from-studio-900 via-studio-800 to-studio-600 bg-clip-text text-transparent">PersonaCraft</span>
+          <span class="ml-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-studio-brandLight text-studio-brand border border-indigo-200">Studio v2.5</span>
+        </div>
+      </div>
+
+      <!-- Quick Action Controls -->
+      <div class="flex items-center gap-2">
+        <button id="btnRandomizeTop" title="Randomize all traits" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-studio-200 hover:border-studio-300 bg-white text-studio-700 hover:bg-studio-50 text-sm font-medium transition shadow-sm">
+          <svg class="w-4 h-4 text-studio-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.678 48.678 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7c-.017.22-.032.441-.046.662M4.5 12c0 1.232.046 2.453.138 3.662a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7c.017-.22.032-.441.046-.662M12 4.5v15" />
+          </svg>
+          <span class="hidden sm:inline">Randomize</span>
+        </button>
+
+        <button id="btnResetTop" title="Reset all traits" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-studio-200 hover:border-studio-300 bg-white text-studio-700 hover:bg-studio-50 text-sm font-medium transition shadow-sm">
+          <svg class="w-4 h-4 text-studio-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+          </svg>
+          <span class="hidden sm:inline">Reset</span>
+        </button>
+
+        <button id="btnOpenVault" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-studio-900 text-white hover:bg-studio-800 text-sm font-semibold transition shadow-sm">
+          <svg class="w-4 h-4 text-indigo-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.75 7.5h16.5m-16.5 0a2.25 2.25 0 012.25-2.25h12a2.25 2.25 0 012.25 2.25" />
+          </svg>
+          <span>30-Slot Vault</span>
+          <span id="savedCountBadge" class="bg-indigo-600 text-white text-xs px-1.5 py-0.2 rounded-full ml-0.5">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
+    <section class="mb-8 bg-white border border-studio-200/90 rounded-2xl p-6 sm:p-8 shadow-card relative overflow-hidden">
+      <div class="absolute -right-16 -top-16 w-64 h-64 bg-indigo-50 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -left-16 -bottom-16 w-64 h-64 bg-sky-50 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="relative z-10 max-w-4xl">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold mb-3 border border-indigo-100">
+          <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+          AI Character Continuity Studio
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-studio-900 tracking-tight mb-3">
+          Consistent Character Prompt Launcher & Generator
+        </h1>
+        <p class="text-studio-600 text-base sm:text-lg leading-relaxed mb-6 font-normal">
+          Designed specifically for digital creators, 3D artists, comic illustrators, and game designers striving to break free from character drift across Midjourney, Flux, and Stable Diffusion. Build multi-dimensional human characters with anatomically anchored tokens, deliberate art direction, environmental backdrops, and seed-locking syntactic cues.
+        </p>
+
+        <!-- 4-Pillar Studio Value Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2 border-t border-studio-100">
+          <div class="p-3 rounded-xl bg-studio-50/70 border border-studio-100">
+            <h3 class="text-xs font-bold text-studio-900 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> What It Does
+            </h3>
+            <p class="text-xs text-studio-600 leading-normal">
+              Generates rigorous, reproducible prompt blueprints with weighted tokens, camera optics, art style paradigms, and wardrobe styling for reliable multi-shot image rendering.
+            </p>
+          </div>
+
+          <div class="p-3 rounded-xl bg-studio-50/70 border border-studio-100">
+            <h3 class="text-xs font-bold text-studio-900 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span> Who It's For
+            </h3>
+            <p class="text-xs text-studio-600 leading-normal">
+              Comic book illustrators, visual novel writers, creative directors, indie game developers, and commercial ad creators needing identical personas across mediums.
+            </p>
+          </div>
+
+          <div class="p-3 rounded-xl bg-studio-50/70 border border-studio-100">
+            <h3 class="text-xs font-bold text-studio-900 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> How It Works
+            </h3>
+            <p class="text-xs text-studio-600 leading-normal">
+              Tune art medium, identity, facial topology, wardrobe, environment, and optics. The real-time compiler outputs verified prompt tokens ready to copy or slot in memory.
+            </p>
+          </div>
+
+          <div class="p-3 rounded-xl bg-studio-50/70 border border-studio-100">
+            <h3 class="text-xs font-bold text-studio-900 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Why It Works
+            </h3>
+            <p class="text-xs text-studio-600 leading-normal">
+              Locks stylistic medium and physical identifiers before scene context, preventing AI attention heads from mutating facial structures across varied scenes, studios, or backdrops.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- Left Column: Trait Selection Form (7 cols) -->
+      <div class="lg:col-span-7 space-y-6">
+
+        <!-- Preset & Character Name Bar -->
+        <div class="bg-white border border-studio-200 rounded-2xl p-5 shadow-card">
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div class="flex-1">
+              <label class="block text-xs font-bold uppercase tracking-wider text-studio-500 mb-1">Character Name / Identifier</label>
+              <input type="text" id="characterName" placeholder="e.g., Maya Sterling, Detective Marcus Vance" 
+                class="w-full px-3.5 py-2 rounded-xl border border-studio-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 text-sm font-semibold text-studio-900 bg-studio-50/50 outline-none transition">
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-studio-500 mb-1">Archetype Preset</label>
+              <select id="presetSelector" class="w-full sm:w-56 px-3 py-2 rounded-xl border border-studio-200 bg-white text-sm font-medium text-studio-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
+                <option value="">-- Choose Preset Archetype --</option>
+                <option value="cyberpunk_hacker">Cyberpunk Runner (Anime/Neo-Tokyo)</option>
+                <option value="nordic_detective">Nordic Noir Detective (Photorealistic)</option>
+                <option value="editorial_model">Haute Couture Model (High-Key Studio)</option>
+                <option value="tokyo_tech_exec">Shinjuku Executive (Cityscape)</option>
+                <option value="coastal_surfer">Californian Free Diver (Nature Beach)</option>
+                <option value="vintage_scholar">Oxford Academic (B&W Vintage / Library)</option>
+                <option value="pop_art_rebel">Pop Art Protagonist (Warhol / Dots)</option>
+                <option value="fantasy_oil_portrait">Renaissance Aristocrat (Classical Oil)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- NEW CATEGORY: Art Medium & Aesthetic Foundation -->
+        <div class="bg-white border border-studio-200 rounded-2xl p-5 shadow-card hover:shadow-card-hover transition">
+          <div class="flex items-center gap-2 mb-4 pb-2 border-b border-studio-100">
+            <div class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">01</div>
+            <div>
+              <h2 class="text-base font-bold text-studio-900">Art Style & Visual Medium</h2>
+              <p class="text-xs text-studio-500">Defines the fundamental rendering paradigm, shading technique, and medium texture</p>
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-xs font-semibold text-studio-600 mb-1">Rendering Style / Artistic Medium</label>
+            <select id="trait_artstyle" class="w-full px-3 py-2 rounded-xl border border-studio-200 text-sm font-medium text-studio-800 bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none">
+              <option value="hyperrealistic editorial photography with authentic natural skin texture, micro-details, and realistic depth of field">Photorealistic (Hyperrealistic Editorial Photography & Natural Pores)</option>
+              <option value="cinematic 3D animation style, stylized smooth subsurface scattering, Octane render, expressive lighting in the signature style of modern feature animation">3D Animated Style (Cinematic 3D Render & Subsurface Glow)</option>
+              <option value="high-end contemporary Japanese anime aesthetic, crisp cel-shaded linework, radiant Makoto Shinkai inspired color palette, exquisite detail">Anime / Manga Style (Contemporary Cel-Shaded Japanese Anime)</option>
+              <option value="bold Pop Art style inspired by Roy Lichtenstein and Andy Warhol, prominent halftone Ben-Day dots, strong graphic silkscreen outlines, and vivid saturated contrasting tones">Pop Art Style (Lichtenstein Ben-Day Dots & Silkscreen)</option>
+              <option value="traditional classical oil painting on canvas, expressive impasto brushwork, rich layered glaze textures, Rembrandt chiaroscuro lighting, masterwork gallery aesthetic">Oil Painting Style (Classical Impasto Canvas & Chiaroscuro)</option>
+              <option value="dynamic American comic book style, bold ink cross-hatching, dramatic cel shading, textured pulp paper grain, graphic novel splash panel finish">Comic Book Style (Graphic Novel Ink & Bold Cross-Hatching)</option>
+              <option value="classic 1940s film noir black and white photography, authentic 35mm silver gelatin print, deep analog film grain, dramatic high-contrast moody lighting">Black & White Vintage Style (1940s Noir & Silver Gelatin Film)</option>
+              <option value="delicate wet-on-wet watercolor illustration, organic bleeding color gradients, fluid pigment washes, soft graphite pencil underdrawing on cold-press archival paper">Watercolor Illustration (Fluid Pigment Washes & Bleeding Edges)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Category 2: Identity & Core Heritage -->
+        <div class="bg-white border border-studio-200 rounded-2xl p-5 shadow-card hover:shadow-card-hover transition">
+          <div class="flex items-center gap-2 mb-4 pb-2 border-b border-studio-100">
+            <div class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs">02</div>
+            <h2 class="text-base font-bold text-studio-900">Identity & Demographic Foundation</h2>
+          </div>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Gender / Sexuality Identity -->
+            <div>
+              <label class="block text-xs font-semibold text-studio-600 mb-1">Gender / Identity Specifier</label>
+              <select id="trait_gender" class="w-full px-3 py-2 rounded-xl border border-studio-200 text-sm text-studio-800 bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none">
+                <option value="woman">Female / Woman</option>
+                <option value="man">Male / Man</option>
+                <option value="androgynous person">Androgynous Person</option>
+                <option value="transgender woman">Transgender Woman</option>
+                <option value="transgender man">Transgender Man</option>
+                <option value="non-binary person with gender-neutral styling">Non-binary Individual</option>
+              </select>
+            </div>
+
+            <!-- Age Specification -->
+            <div>
+              <label class="block text-xs font-semibold text-studio-600 mb-1">Age Bracket / Expression</label>
+              <select id="trait_age" class="w-full px-3 py-2 rounded-xl border border-studio-200 text-sm text-studio-800 bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none">
+                <option value="in their early 20s (around 22 years old)">Early 20s (approx. 22)</option>
+                <option value="in their late 20s (around 28 years old)">Late 20s (approx. 28)</option>
+                <option value="in their mid-30s (around 35 years old)">Mid 30s (approx. 35)</option>
+                <option value="in their early 40s (around 42 years old)">Early 40s (approx. 42)</option>
+                <option value="distinguished mid-50s with subtle silver streaks">Mid 50s (approx. 55)</option>
+                <option value="vibrant senior in their late 60s with dignified laugh lines">Late 60s (approx. 68)</option>
+                <option value="graceful elder in their late 70s with deep character lines">Late 70s (approx. 78)</option>
+                <option value="youthful 19-year-old adult">Late Teen (19 years old)</option>
+              </select>
+            </div>
+
+            <!-- Ethnicity & Heritage -->
+            <div>
+              <label class="block text-xs font-semibold text-studio-600 mb-1">Ethnicity & Heritage</label>
+              <select id="trait_ethnicity" class="w-full px-3 py-2 rounded-xl border border-studio-200 text-sm text-studio-800 bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none">
+                <option value="East Asian descent">East Asian (Japanese/Korean/Chinese)</option>
+                <option value="South Asian descent">South Asian (Indian/Pakistani/Bengali)</option>
+                <option value="Black African diaspora heritage">Black / African Diaspora</option>
+                <option value="Afro-Caribbean heritage">Afro-Caribbean</option>
+                <option value="Mediterranean heritage (Southern European)">Mediterranean (Italian/Greek/Spanish)</option>
+                <option value="Northern European / Scandinavian descent">Northern European / Scandinavian</option>
+                <option value="Celtic / Irish heritage with subtle ruddy tones">Celtic / Gaelic</option>
+                <option value="Latin American / Mestizo heritage">Latin American / Mestizo</option>
+                <option value="Middle Eastern / Levantine descent">Middle Eastern / Levantine</option>
+                <option value="Southeast Asian descent">Southeast Asian (Filipino/Thai/Vietnamese)</option>
+                <option value="Pacific Islander heritage">Pacific Islander / Polynesian</option>
+                <option value="Indigenous / First Nations heritage">Indigenous / First Nations</option>
+                <option value="Multi-ethnic mixed descent">Multi-ethnic / Blended Heritage</option>
+              </select>
+            </div>
+
+            <!-- Skin Tone Presets -->
+            <div>
+              <label class="block text-xs font-semibold text-studio-600 mb-1">Skin Tone & Undertone</label>
+              <select id="trait_skintone" class="w-full px-3 py-2 rounded-xl border border-studio-200 text-sm text-studio-800 bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none">
+                <option value="luminous porcelain skin with cool pink undertones">Porcelain (Cool Pink Undertone)</option>
+                <option value="fair alabaster complexion with neutral undertones">Fair Alabaster (Neutral)</option>
+                <option value="warm ivory skin tone with soft peach hues">Warm Ivory (Peach)</option>
+                <option value="golden sun-kissed honey olive complexion">Sun-kissed Honey Olive</option>
+                <option value="rich warm bronze skin with golden undertones">Warm Golden Bronze</option>
+                <option value="caramel brown skin with radiant amber undertones">Caramel Brown (Amber Glow)</option>
+                <option value="deep warm espresso skin tone with rich mahogany undertones">Deep Espresso (Mahogany)</option>
+                <option value="glossy obsidian deep skin tone with cool neutral undertones">Glossy Obsidian Deep</option>
+                <option value="sun-weathered bronze complexion with natural skin texture">Sun-weathered Golden Tan</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category 3: Facial Topology & Features -->
+        <div class="bg-white border border-studio-200 rounded-2xl p-5 shadow-card hover:shadow-card-hover transition">
+          <div class="flex items-center gap-2 mb-4 pb-2 border-b border-studio-100">
+            <div class="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center font-bold text-xs">03</div>
+            <h2 class="text-base font-bold text-studio-900">Facial Architecture & Topology</h2>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Facial Structure / Jaw -->
+            <div>
+              <label class="block text-xs font-semibold text-studio-600 mb-1">Face Shape & Jawline</label>
+              <select id="trait_faceshape" class="w-full px-3 py-2 rounded-xl border border-studio-200 text-sm text-studio-800 bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none">
+                <option value="high sculptured cheekbones with an angular chiseled jawline">High Sculptured Cheekbones, Chiseled Jaw</option>
+                <option value="soft oval facial structure with gentle jaw contour">Soft Oval Contour</option>
+                <option value="strong square jawline with well-defined chin">Strong Square Jawline</option>
+                <option value="delicate heart-shaped face with a tapered chin">Heart-Shaped & Tapered Chin</option>
+                <option value="round, youthful facial features with softly defined temples">Round & Softly Defined</option>
+                <option value="sharp aristocratic facial geometry with prominent bone structure">Sharp Aristocratic Geometry</option>
+              </select>
+            </div>
+
+            <!-- Eyes & Gaze -->
+            <div>
+              <label class="block text-xs font-semibold text-studio-600 mb-1">Eye Color, Shape & Gaze</label>
+              <select id="trait_eyes" class="w-full px-3 py-2 rounded-xl border border-studio-200 text-sm text-studio-800 bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none">
+                <option value="almond-shaped deep hazel eyes with golden flecks and an intense, focused gaze">Deep Hazel Almond (Golden Flecks)</option>
+                <option value="piercing ice-blue eyes with dark limbal rings and calm expression">Ice-Blue (Dark Limbal Rings)</option>
+                <option value="warm espresso dark brown eyes with soft, inviting gaze">Espresso Dark Brown (Warm Gaze)</option>
+                <option value="striking emerald green eyes with expressive arched brows">Emerald Green (Expressive Arches)</option>
+                <option value="hooded amber-honey eyes with contemplative look">Hooded Amber Honey</option>
+                <option value="monolid dark obsidian eyes with crisp defined lashes">Monolid Obsidian (Crisp Lashes)</option>
+                <option value="slate gray reflective eyes with intriguing depth">Slate Gray Reflective</option>
+                <option value="complete heterochromia: one vivid cyan blue eye, one rich warm hazel eye">Heterochromia (Blue / Hazel)</option>
+              </select>
+            </div>
+
+            <!-- Nose Shape -->
+            <div>
+              <label class="block text-xs font-semibold text-studio-600 mb-1">Nose Architecture</label>
+              <select id="trait_nose" class="w-full px-3 py-2 rounded-xl border border-studio-200 text-sm text-studio-800 bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none">
+                <option value="straight refined aquiline nose with subtle bridge contour">Straight Aquiline Nose</option>
+                <option value="button nose with a softly upturned tip">Upturned Button Nose</option>
+                <option value="broad, beautifully sculpted bridge and wide soft nostrils">Broad Sculpted Bridge</option>
+                <option value="slender delicate bridge with sharp refined tip">Slender Delicate Bridge</option>
+                <option value="distinctive Roman nose with strong character bridge">Strong Roman Profile</option>
+              </select>
+            </div>
+
+            <!-- Lips & Expression -->
+            <div>
+              <label class="block text-xs font-semibold text-studio-600 mb-1">Lips & Mouth Expression</label>
+              <select id="trait_lips" class="w-full px-3 py-2 rounded-xl border border-studio-200 text-sm text-studio-800 bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none">
+                <option value="natural full lips with a defined cupid's bow and relaxed neutral demeanor">Full Lips, Defined Cupid's Bow</option>
+                <option value="plump matte lips resting in a subtle, knowing smirk">Plump Matte Lips, Subtle Smirk</option>
+                <option value="medium balanced lips with gentle, approachable expression">Medium Balanced Lips, Friendly</option>
+                <option value="thin refined lips pressed in a stoic, resolute posture">Thin Refined Lips, Stoic</option>
+                <option value="wide expressive mouth with natural rosy pigmentation">Wide Expressive Rosy Lips</option>
+              </select>
+            </div>
+
+            <!-- Distinguishing Facial Details -->
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-semibold text-studio-600 mb-1">Distinguishing Anatomical Marks & Accents</label>
+              <select id="trait_marks" class="w-full px-3 py-2 rounded-xl border border-studio-200 text-sm text-studio-800 bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none">
+                <option value="light constellation of natural sun freckles across nose and cheekbones">Constellation of Freckles Across Bridge & Cheeks</option>
+                <option value="clean, pore-level authentic skin texture with natural microscopic imperfections">Authentic Fine Pore Texture (No Airbrushing)</option>
+                <option value="a subtle aesthetic scar across the left eyebrow, adding rugged grit">Subtle Scar Across Left Eyebrow</option>
+                <option value="subtle beauty mark just above the upper right lip and deep symmetrical smile dimples">Beauty Mark Above Lip & Smile Dimples</option>
+                <option value="clean architectural modern wireframe titanium spectacles resting on bridge">Modern Titanium Wireframe Glasses</option>
+                <option value="a small discreet silver geometric stud in left nostril and ear cartilage piercings">Minimalist Silver Nose Stud & Cartilage Piercings</option>
+                <option value="clean shaved skin with faint 5 o'clock shadow on jaw">Faint 5 o'Clock Shadow (Groomed Stubble)</option>
+                <option value="neatly groomed, trimmed short beard with clean perimeter lines">Neatly Trimmed Architectured Short Beard</option>
+                <option value="none, spotless pristine skin with natural oil sheen">Pristine Smooth Surface (Natural Sheen)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category 4: Hair Styling, Color & Texture -->
+        <div class="bg-white border border-studio-200 rounded-2xl p-5 shadow-card hover:shadow-card-hover transition">
+          <div class="flex items-center gap-2 mb-4 pb-2 border-b border-studio-100">
+            <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs">04</div>
+            <h2 class="text-base font-bold text-studio-900">Hair Structure, Cut & Color</h2>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <!-- Length & Style -->
+            <div>
+              <label class="block text-xs font-semibold text-studio-600 mb-1">Length & Silhouette</label>
+              <select id="trait_hairlength" class="w-full px-3 py-2 rounded-xl border border-studio-200 text-sm text-studio-800 bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none">
+                <option value="shoulder-length layered cut framing the face">Shoulder-Length Layered</option>
+                <option value="cropped textured pixie cut with tapered neck">Cropped Textured Pixie</option>
+                <option value="long cascading tresses reaching mid-back">Long Cascading Mid-Back</option>
+                <option value="modern messy textured French crop with skin fade">Textured French Crop with Fade</option>
+                <option value="sharp blunt bob cut hitting exactly at jawline">Sharp Blunt Jawline Bob</option>
+                <option value="intricate high crown box braids flowing past shoulders">Long Geometric Box Braids</option>
+                <option value="clean shaved buzz cut showing scalp silhouette">Clean Buzz Cut</option>
+                <option value="swept-back pompadour with short clean sides">Swept-Back Pompadour</option>
+                <option value="effortless high messy topknot bun with loose tendrils">Effortless Topknot Bun</option>
+              </select>
+            </div>
+
+            <!-- Texture -->
+            <div>
+              <label class="block text-xs font-semibold text-studio-600 mb-1">Hair Texture & Motion</label>
+              <select id="trait_hairtexture" class="w-full px-3 py-2 rounded-xl border border-studio-200 text-sm text-studio-800 bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none">
+                <option value="loose beach waves with soft organic movement">Loose Beach Waves</option>
+                <option value="silky bone-straight strands with glossy light reflection">Silky Bone-Straight</option>
+                <option value="defined 3C springy ringlet curls with natural bounce">3C Springy Ringlet Curls</option>
+                <option value="dense voluminous 4C afro coils with sculpted outline">Dense Voluminous 4C Afro Coils</option>
+                <option value="tousled windswept texture with intentional flyaways">Tousled Windswept Texture</option>
+                <option value="coarse, dense, slightly rebellious strands">Coarse & Thick Matte Strands</option>
+              </select>
+            </div>
+
+            <!-- Color -->
+            <div>
+              <label class="block text-xs font-semibold text-studio-600 mb-1">Hair Color & Tones</label>
+              <select id="trait_haircolor" class="w-full px-3 py-2 rounded-xl border border-studio-200 text-sm text-studio-800 bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none">
+                <option value="deep raven jet-black hair with subtle midnight blue gloss">Raven Jet-Black (Blue Gloss)</option>
+                <option value="rich espresso dark chocolate brown hair">Rich Dark Chocolate Espresso</option>
+                <option value="warm honey blonde hair with champagne sun highlights">Honey Blonde (Champagne Highlights)</option>
+                <option value="fiery copper auburn hair with warm golden undertones">Fiery Copper Auburn</option>
+                <option value="ash platinum silver hair with cool smoky undertones">Ash Platinum Silver</option>
+                <option value="pastel dusty lilac rose hair with muted tone">Dusty Lilac Rose</option>
+                <option value="distinguished salt-and-pepper hair with steel silver temples">Salt & Pepper / Silver Temples</option>
+                <option value="chestnut brown with caramel balayage ribbing">Chestnut with Caramel Balayage</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category 5: Body, Height & Physique -->
+        <div class="bg-white border border-studio-200 rounded-2xl p-5 shadow-card hover:shadow-card-hover transition">
+          <div class="flex items-center gap-2 mb-4 pb-2 border-b border-studio-100">
+            <div class="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-xs">05</div>
+            <h2 class="text-base font-bold text-studio-900">Body Stature & Physical Silhouette</h2>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Stature / Height -->
+            <div>
+              <label class="block text-xs font-semibold text-studio-600 mb-1">Height & Posture</label>
+              <select id="trait_height" class="w-full px-3 py-2 rounded-xl border border-studio-200 text-sm text-studio-800 bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none">
+                <option value="tall stature (approximately 185cm / 6'1'') with poised, commanding posture">Tall (6'1" / 185cm) with Poised Posture</option>
+                <option value="average height (approximately 172cm / 5'8'') with natural relaxed stance">Average (5'8" / 172cm) Relaxed Stance</option>
+                <option value="petite stature (approximately 158cm / 5'2'') with agile, dynamic poise">Petite (5'2" / 158cm) Agile Poise</option>
+                <option value="towering tall frame (approximately 193cm / 6'4'') with broad shoulders">Towering (6'4" / 193cm) Broad Stature</option>
+                <option value="compact, grounded presence with centered balanced weight">Compact & Grounded Centered Stance</option>
+              </select>
+            </div>
+
+            <!-- Build & Silhouette -->
+            <div>
+              <label class="block text-xs font-semibold text-studio-600 mb-1">Body Build & Proportions</label>
+              <select id="trait_build" class="w-full px-3 py-2 rounded-xl border border-studio-200 text-sm text-studio-800 bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none">
+                <option value="athletic, toned build with lean defined muscles and healthy posture">Athletic & Lean Toned</option>
+                <option value="slender, high-fashion runway proportions with long limbs and narrow waist">Slender High-Fashion Runway</option>
+                <option value="curvaceous, voluptuous hourglass figure with well-proportioned curves">Hourglass Curvaceous Figure</option>
+                <option value="muscular, broad-shouldered powerful athletic physique with strong vascularity">Broad Muscular Power Build</option>
+                <option value="plus-size, full-figured silhouette with confident, graceful posture">Plus-Size Graceful Silhouette</option>
+                <option value="lean wiry marathon runner build with sharp clavicles and defined shoulders">Lean Wiry Runner Build</option>
+                <option value="soft, natural everyday body shape with comfortable proportions">Natural Soft Everyday Build</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category 6: Wardrobe & Styling -->
+        <div class="bg-white border border-studio-200 rounded-2xl p-5 shadow-card hover:shadow-card-hover transition">
+          <div class="flex items-center gap-2 mb-4 pb-2 border-b border-studio-100">
+            <div class="w-7 h-7 rounded-lg bg-pink-50 text-pink-600 flex items-center justify-center font-bold text-xs">06</div>
+            <h2 class="text-base font-bold text-studio-900">Wardrobe, Textiles & Fashion Ensembles</h2>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Fashion Style Category -->
+            <div>
+              <label class="block text-xs font-semibold text-studio-600 mb-1">Style Genre & Wardrobe Code</label>
+              <select id="trait_clothing_style" class="w-full px-3 py-2 rounded-xl border border-studio-200 text-sm text-studio-800 bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none">
+                <option value="smart casual contemporary styling">Smart Casual Contemporary</option>
+                <option value="modern business executive tailoring">Modern Business Executive</option>
+                <option value="high-fashion gala evening wear">High-Fashion Gala / Evening Wear</option>
+                <option value="trendy oversized urban streetwear">Trendy Oversized Streetwear</option>
+                <option value="technical performance sportswear & athletic gear">Performance Sportswear & Athletics</option>
+                <option value="luxurious cashmere leisure & loungewear">Luxury Leisure & Loungewear</option>
+                <option value="resort luxury swimwear & coastal beachwear">Resort Swimwear & Beachwear</option>
+                <option value="avant-garde architectural runway editorial">Avant-Garde Architectural Runway</option>
+                <option value="utilitarian tactical cyberpunk field wear">Utilitarian Tactical Cyberpunk</option>
+                <option value="vintage heritage tailored tweed and woolens">Vintage Tailored Tweed & Wool</option>
+              </select>
+            </div>
+
+            <!-- Specific Garments & Textiles -->
+            <div>
+              <label class="block text-xs font-semibold text-studio-600 mb-1">Garments & Material Textures</label>
+              <select id="trait_garments" class="w-full px-3 py-2 rounded-xl border border-studio-200 text-sm text-studio-800 bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none">
+                <option value="wearing an unbuttoned crisp raw-linen shirt over a ribbed white cotton tank, paired with pleated sand-colored chinos">Linen Shirt, Ribbed Tank & Sand Chinos</option>
+                <option value="wearing a tailored bespoke charcoal double-breasted wool blazer with satin lapels, crisp spread-collar dress shirt, and tailored trousers">Charcoal Double-Breasted Suit & Satin Lapels</option>
+                <option value="wearing an exquisite emerald green silk charmeuse slip gown with an open cross-back and fluid drape">Silk Charmeuse Gown with Fluid Drape</option>
+                <option value="wearing an oversized heavyweight washed black hoodie, utility cargo trousers with nylon webbing straps, and designer chunky sneakers">Heavyweight Hoodie & Utility Strapped Cargos</option>
+                <option value="wearing a compression moisture-wicking aerodynamic athletic quarter-zip jacket with sleek thermal running tights">Athletic Compression Quarter-Zip & Running Tights</option>
+                <option value="wearing an ultra-soft oat-milk cashmere crewneck sweater layered over relaxed-fit brushed modal drawstring trousers">Cashmere Crewneck & Modal Loungewear Pants</option>
+                <option value="wearing an elegant ribbed terracotta one-piece swimsuit with an open back and a sheer linen resort wrap">Terracotta Ribbed Swimsuit & Resort Wrap</option>
+                <option value="wearing high-performance matte swim trunks with a tropical botanical micro-print and unbuttoned linen resort camp shirt">Matte Print Swim Trunks & Resort Shirt</option>
+                <option value="wearing a rugged distressed lambskin leather biker jacket with silver hardware over a soft black crewneck">Distressed Leather Biker Jacket & Crewneck</option>
+              </select>
+            </div>
+
+            <!-- Palette & Accents -->
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-semibold text-studio-600 mb-1">Wardrobe Color Palette & Jewelry / Accessories</label>
+              <select id="trait_wardrobe_palette" class="w-full px-3 py-2 rounded-xl border border-studio-200 text-sm text-studio-800 bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none">
+                <option value="in a curated neutral palette of warm camel, ivory, and soft charcoal, accented with a minimalist brushed gold watch and signet ring">Warm Camel & Ivory + Brushed Gold Accessories</option>
+                <option value="in monochromatic obsidian and slate black with matte silver hardware and a sleek leather cuff">Monochromatic Obsidian & Silver Accents</option>
+                <option value="in rich jewel tones of deep sapphire blue and burnished bronze, finished with delicate emerald earrings">Sapphire & Bronze + Emerald Earrings</option>
+                <option value="in muted earth tones of sage green, terracotta, and ecru, complemented by subtle layered silver chains">Muted Earth Tones (Sage, Clay, Ecru)</option>
+                <option value="in crisp high-contrast optic white and cobalt blue with vibrant clean accents">Optic White & Electric Cobalt Blue</option>
+                <option value="in vibrant pastel sorbet tones (lavender, mint, and peach) with clean minimalist eyewear">Pastel Sorbet (Lavender, Mint, Peach)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category 7: Environment, Optics & Cinematography -->
+        <div class="bg-white border border-studio-200 rounded-2xl p-5 shadow-card hover:shadow-card-hover transition">
+          <div class="flex items-center gap-2 mb-4 pb-2 border-b border-studio-100">
+            <div class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-xs">07</div>
+            <h2 class="text-base font-bold text-studio-900">Environmental Background & Cinematography</h2>
+          </div>
+
+          <div class="space-y-4">
+            <!-- NEW FIELD: Environmental Background -->
+            <div>
+              <label class="block text-xs font-semibold text-studio-600 mb-1">Environmental Background & Setting</label>
+              <select id="trait_environment" class="w-full px-3 py-2 rounded-xl border border-studio-200 text-sm font-medium text-studio-800 bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none">
+                <option value="set against a minimalist plain light photography studio backdrop with a clean seamless bone-white cyclorama curve">Plain Light Studio Backdrop (Clean High-Key Seamless Cyclorama)</option>
+                <option value="set against a plain dark studio backdrop with low-key charcoal seamless paper and subtle gentle vignette">Plain Dark Studio Backdrop (Low-Key Seamless Charcoal)</option>
+                <option value="set against an ultra-clean chroma key solid green screen backdrop for visual effects compositing">Green Screen Backdrop (Chroma Key Green for VFX)</option>
+                <option value="set against a clean solid chroma key blue screen backdrop for precision film compositing">Blue Screen Backdrop (Chroma Key Blue for Compositing)</option>
+                <option value="situated in a lush nature environment, surrounded by sun-dappled botanical flora, towering eucalyptus, and soft morning mist">Nature / Outdoor (Lush Forest & Sun-Dappled Garden)</option>
+                <option value="situated outdoors in an open golden hour coastal meadow overlooking calm turquoise sea waters and sea oats">Nature / Outdoor (Coastal Meadow & Tropical Shoreline)</option>
+                <option value="situated in a vibrant cityscape background with bustling downtown neon streets, modern skyscrapers, and reflective evening pavements">Cityscape / Urban (Neon Downtown & Towering Architecture)</option>
+                <option value="situated at a charming rainy urban sidewalk cafe with blurred metropolitan street life and cafe bistro chairs">Cityscape / Urban (Rainy Metropolitan Cafe & Plaza)</option>
+                <option value="situated in an intimate indoor homely setting, inside a cozy sunlit living room with warm linen drapes, potted plants, and hardwood floors">Indoor Homely (Warm Sunlit Living Room & Hardwood Floors)</option>
+                <option value="situated in a quiet rustic indoor home library nook with floor-to-ceiling mahogany bookshelves and soft warm reading lamplight">Indoor Homely (Rustic Wooden Library Nook & Warm Amber Lamps)</option>
+                <option value="situated inside a modern industrial warehouse loft featuring exposed raw red brick, steel casement windows, and polished concrete floors">Industrial / Loft (Exposed Brick Warehouse & Crittall Windows)</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <!-- Framing / Shot Composition -->
+              <div>
+                <label class="block text-xs font-semibold text-studio-600 mb-1">Shot Framing</label>
+                <select id="trait_framing" class="w-full px-3 py-2 rounded-xl border border-studio-200 text-sm text-studio-800 bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none">
+                  <option value="waist-up medium portrait composition with natural breathing room">Waist-Up Portrait</option>
+                  <option value="intimate tight close-up portrait highlighting facial detail">Intimate Close-Up Portrait</option>
+                  <option value="cinematic 3/4 length fashion shot with dynamic stance">3/4 Fashion Composition</option>
+                  <option value="full-length editorial body shot showcasing entire outfit and posture">Full-Length Editorial</option>
+                  <option value="environmental medium-long shot contextualized in space">Environmental Medium Shot</option>
+                </select>
+              </div>
+
+              <!-- Lens & Aperture -->
+              <div>
+                <label class="block text-xs font-semibold text-studio-600 mb-1">Camera Lens & Optical Depth</label>
+                <select id="trait_lens" class="w-full px-3 py-2 rounded-xl border border-studio-200 text-sm text-studio-800 bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none">
+                  <option value="shot on 85mm f/1.4 prime lens with silky cream bokeh and shallow depth of field">85mm f/1.4 Portrait Prime (Cream Bokeh)</option>
+                  <option value="shot on Hasselblad medium format camera with 80mm lens, rendering hyper-realistic pore details and micro-contrast">Hasselblad Medium Format 80mm</option>
+                  <option value="shot on 50mm f/1.2 lens providing organic, true-to-eye human perspective">50mm f/1.2 Natural Eye Perspective</option>
+                  <option value="shot on 35mm f/1.8 documentary prime lens for realistic environmental context">35mm f/1.8 Documentary Cinematic</option>
+                  <option value="shot on Leica 50mm Summilux lens with soft filmic roll-off">Leica 50mm Summilux (Film Roll-off)</option>
+                </select>
+              </div>
+
+              <!-- Lighting & Setting -->
+              <div>
+                <label class="block text-xs font-semibold text-studio-600 mb-1">Lighting Setup</label>
+                <select id="trait_lighting" class="w-full px-3 py-2 rounded-xl border border-studio-200 text-sm text-studio-800 bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none">
+                  <option value="illuminated by soft diffused studio north-facing daylight with a gentle silver reflector fill">Studio Soft Daylight (Diffused & Silver Fill)</option>
+                  <option value="warm golden hour sunset backlighting creating radiant edge rim light on hair">Golden Hour Warm Rim Lighting</option>
+                  <option value="dramatic high-contrast chiaroscuro Rembrandt lighting with subtle ambient shadows">Rembrandt Chiaroscuro & Deep Shadows</option>
+                  <option value="atmospheric moody twilight with cool blue tones complemented by subtle magenta and cyan practical neon reflections">Atmospheric Neon Ambient Glow</option>
+                  <option value="bright high-key commercial editorial lighting with pristine shadow falloff">Bright High-Key Commercial Clean Lighting</option>
+                  <option value="dappled organic sunbeams filtering through leaves, casting soft natural leaf shadow patterns">Dappled Sunlight & Leaf Shadows</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Live Prompt Console & Slot Management (5 cols) -->
+      <div class="lg:col-span-5 space-y-6 lg:sticky lg:top-20">
+
+        <!-- Live Output Card -->
+        <div class="bg-white border border-studio-200 rounded-2xl p-5 shadow-card">
+          <div class="flex items-center justify-between mb-3 pb-2 border-b border-studio-100">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+              <h2 class="text-sm font-bold text-studio-900 tracking-tight">Compiled Prompt Blueprint</h2>
+            </div>
+            <div class="flex items-center gap-1.5 text-xs text-studio-500 font-mono" id="tokenCount">
+              ~0 tokens
+            </div>
+          </div>
+
+          <!-- Prompt Output Textarea -->
+          <div class="relative group">
+            <textarea id="promptOutput" rows="8" readonly
+              class="w-full p-4 rounded-xl bg-studio-900 text-studio-100 font-mono text-xs sm:text-[13px] leading-relaxed border border-studio-800 focus:outline-none resize-y selection:bg-indigo-600 selection:text-white transition shadow-inner"
+              placeholder="Prompt will assemble dynamically as you configure character traits..."></textarea>
+          </div>
+
+          <!-- Quick Copy & Action Row -->
+          <div class="mt-3 flex flex-wrap items-center gap-2">
+            <button id="btnCopyPrompt" class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white text-sm font-semibold transition shadow-md shadow-indigo-200">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
+              </svg>
+              <span>Copy Full Prompt</span>
+            </button>
+
+            <!-- Quick Slot Save Button -->
+            <button id="btnQuickSaveSlot" class="px-3.5 py-2.5 rounded-xl border border-studio-200 hover:border-indigo-300 hover:bg-indigo-50/50 text-studio-700 text-sm font-semibold transition flex items-center gap-1.5" title="Quickly save current character to active slot">
+              <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+              </svg>
+              <span>Save Slot</span>
+            </button>
+          </div>
+
+          <!-- Parameter Modifiers Accordion / Options -->
+          <div class="mt-4 pt-3 border-t border-studio-100 space-y-3">
+            <div class="text-xs font-bold text-studio-600 uppercase tracking-wider">Engine Syntax & Parameters</div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+              <div>
+                <label class="block text-studio-500 mb-0.5">Aspect Ratio</label>
+                <select id="param_ar" class="w-full px-2 py-1.5 rounded-lg border border-studio-200 text-xs bg-studio-50/50">
+                  <option value="--ar 4:5">4:5 (Portrait IG)</option>
+                  <option value="--ar 9:16">9:16 (Stories/Reels)</option>
+                  <option value="--ar 1:1">1:1 (Square)</option>
+                  <option value="--ar 16:9">16:9 (Cinematic)</option>
+                  <option value="--ar 2:3">2:3 (Classic 35mm)</option>
+                  <option value="">None (Default)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-studio-500 mb-0.5">Engine Tuning</label>
+                <select id="param_engine" class="w-full px-2 py-1.5 rounded-lg border border-studio-200 text-xs bg-studio-50/50">
+                  <option value="--style raw --v 6.1">MJ v6.1 Raw</option>
+                  <option value="photorealistic, 8k uhd, dslr quality">Flux / SDXL Master</option>
+                  <option value="cinematic photographic film grain">Analog 35mm Grain</option>
+                  <option value="--stylize 250">Midjourney Stylize 250</option>
+                  <option value="">Raw Minimal</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-studio-500 mb-0.5">Seed Lock Tip</label>
+                <div class="px-2 py-1.5 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-700 font-mono text-[11px] truncate" title="Use identical seed numbers across variations to preserve identical face topology">
+                  --seed [1-999999]
+                </div>
+              </div>
+            </div>
+
+            <!-- Negative Prompt Box -->
+            <div class="pt-2">
+              <label class="block text-xs font-semibold text-studio-500 mb-1">Standard Negative Prompt Safeguards</label>
+              <div class="flex items-center gap-2">
+                <input type="text" id="negativePrompt" readonly
+                  value="cartoon, 3d render, doll, plastic skin, airbrushed, mutated fingers, extra limbs, bad anatomy, deformed eyes, disfigured, blur, duplicate face, cross-eyed"
+                  class="flex-1 px-3 py-1.5 rounded-lg bg-studio-50 border border-studio-200 text-xs text-studio-600 font-mono select-all">
+                <button id="btnCopyNegative" class="px-2.5 py-1.5 rounded-lg border border-studio-200 hover:bg-studio-100 text-xs font-medium text-studio-700 transition" title="Copy Negative Prompt">
+                  Copy
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 30-Slot Character Vault Quick Panel -->
+        <div class="bg-white border border-studio-200 rounded-2xl p-5 shadow-card">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="text-sm font-bold text-studio-900">Active Slot Target</h3>
+              <p class="text-xs text-studio-500">Pick where your current character saves or loads from</p>
+            </div>
+            <button id="btnShowAllSlots" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition underline underline-offset-2">
+              Open 30-Slot Grid
+            </button>
+          </div>
+
+          <!-- Slot Quick Select Dropdown -->
+          <div class="flex items-center gap-2">
+            <select id="quickSlotSelect" class="flex-1 px-3 py-2 rounded-xl border border-studio-200 text-sm bg-white font-medium text-studio-800 focus:ring-2 focus:ring-indigo-100 outline-none">
+              <!-- Dynamically populated 1 to 30 -->
+            </select>
+            <button id="btnSaveToSelected" class="px-3.5 py-2 rounded-xl bg-studio-900 hover:bg-studio-800 text-white text-xs font-bold transition">
+              Save
+            </button>
+            <button id="btnLoadFromSelected" class="px-3.5 py-2 rounded-xl border border-studio-200 hover:bg-studio-50 text-studio-800 text-xs font-bold transition">
+              Load
+            </button>
+          </div>
+
+          <!-- Active Character Tags Pill Preview -->
+          <div class="mt-4 pt-3 border-t border-studio-100">
+            <div class="text-[11px] font-bold text-studio-400 uppercase tracking-wider mb-2">Active Traits Snapshot</div>
+            <div id="characterPills" class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
+              <!-- Pills inserted via JS -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- 30-Slot Modal Character Vault -->
+  <div id="vaultModal" class="fixed inset-0 z-50 bg-studio-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-studio-200 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-studio-100 flex items-center justify-between bg-studio-50/50">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+            30
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-studio-900">Character Vault Memory Bank</h2>
+            <p class="text-xs text-studio-500">Persistent browser storage for up to 30 unique persona prompts</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Backup Export / Import buttons -->
+          <button id="btnExportSlots" class="px-3 py-1.5 rounded-lg border border-studio-200 bg-white hover:bg-studio-50 text-xs font-semibold text-studio-700 flex items-center gap-1.5 shadow-sm transition">
+            <svg class="w-3.5 h-3.5 text-studio-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+            Export JSON
+          </button>
+
+          <label class="px-3 py-1.5 rounded-lg border border-studio-200 bg-white hover:bg-studio-50 text-xs font-semibold text-studio-700 flex items-center gap-1.5 shadow-sm cursor-pointer transition">
+            <svg class="w-3.5 h-3.5 text-studio-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+            </svg>
+            Import JSON
+            <input type="file" id="importFileInput" accept=".json" class="hidden">
+          </label>
+
+          <button id="btnCloseVault" class="w-8 h-8 rounded-full bg-studio-100 hover:bg-studio-200 text-studio-600 flex items-center justify-center transition ml-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body: 30 Slot Grid (5 cols x 6 rows on desktop) -->
+      <div class="p-6 overflow-y-auto flex-1 bg-studio-50/30">
+        <div id="slotsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3.5">
+          <!-- 30 slots rendered via JS -->
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-3 bg-white border-t border-studio-100 flex items-center justify-between text-xs text-studio-500">
+        <span>Tip: Characters remain saved in your browser even if you close the window.</span>
+        <button id="btnClearAllSlots" class="text-rose-600 hover:text-rose-800 font-semibold transition">
+          Clear All 30 Slots
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Slide-out Affiliate Links Drawer at Bottom (Visible on initial load) -->
+  <aside id="affiliateDrawer" class="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-studio-200 shadow-drawer transition-transform duration-300 transform translate-y-0">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
+      
+      <!-- Drawer Top Bar -->
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-amber-100 text-amber-700 text-xs font-bold">★</span>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-studio-700">Creator Studio Ecosystem & Recommended Toolkit</h2>
+          <span class="text-[11px] text-studio-600 bg-studio-100 px-2 py-0.5 rounded-full hidden md:inline">Curated AI generation & enhancement tools</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Quick Dismiss / Collapse Button -->
+          <button id="btnDismissDrawer" class="flex items-center gap-1 text-xs font-semibold text-studio-500 hover:text-studio-900 px-2.5 py-1 rounded-lg hover:bg-studio-100 transition" title="Collapse drawer to bottom tab">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+            </svg>
+            <span>Dismiss / Collapse</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Affiliate Product Cards Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+
+        <!-- Tool 1: Midjourney / Flux Hub -->
+        <a href="https://midjourney.com" target="_blank" rel="noopener noreferrer" class="group flex flex-col justify-between p-2.5 rounded-xl border border-studio-200 hover:border-indigo-400 bg-white hover:bg-indigo-50/20 transition shadow-sm">
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">Core Model</span>
+              <span class="text-[10px] text-studio-400 group-hover:text-indigo-600 transition">↗</span>
+            </div>
+            <div class="text-xs font-bold text-studio-800 group-hover:text-indigo-600 transition truncate">Midjourney v6.1</div>
+            <div class="text-[11px] text-studio-500 line-clamp-1">Premier prompt rendering</div>
+          </div>
+          <span class="mt-2 text-[11px] font-semibold text-studio-700 group-hover:text-indigo-600 flex items-center justify-between">
+            Launch Engine <span class="text-xs">→</span>
+          </span>
+        </a>
+
+        <!-- Tool 2: Magnific AI / Krea Upscaler -->
+        <a href="https://magnific.ai" target="_blank" rel="noopener noreferrer" class="group flex flex-col justify-between p-2.5 rounded-xl border border-studio-200 hover:border-sky-400 bg-white hover:bg-sky-50/20 transition shadow-sm">
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] font-bold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded">Upscaling</span>
+              <span class="text-[10px] text-studio-400 group-hover:text-sky-600 transition">↗</span>
+            </div>
+            <div class="text-xs font-bold text-studio-800 group-hover:text-sky-600 transition truncate">Magnific AI 8K</div>
+            <div class="text-[11px] text-studio-500 line-clamp-1">Micro-pore hallucinative res</div>
+          </div>
+          <span class="mt-2 text-[11px] font-semibold text-studio-700 group-hover:text-sky-600 flex items-center justify-between">
+            Enhance Textures <span class="text-xs">→</span>
+          </span>
+        </a>
+
+        <!-- Tool 3: Civitai / Model Hub -->
+        <a href="https://civitai.com" target="_blank" rel="noopener noreferrer" class="group flex flex-col justify-between p-2.5 rounded-xl border border-studio-200 hover:border-purple-400 bg-white hover:bg-purple-50/20 transition shadow-sm">
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] font-bold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">LoRAs & Hub</span>
+              <span class="text-[10px] text-studio-400 group-hover:text-purple-600 transition">↗</span>
+            </div>
+            <div class="text-xs font-bold text-studio-800 group-hover:text-purple-600 transition truncate">Civitai LoRA Hub</div>
+            <div class="text-[11px] text-studio-500 line-clamp-1">Character weights & checkpts</div>
+          </div>
+          <span class="mt-2 text-[11px] font-semibold text-studio-700 group-hover:text-purple-600 flex items-center justify-between">
+            Browse Models <span class="text-xs">→</span>
+          </span>
+        </a>
+
+        <!-- Tool 4: Adobe Firefly / CC -->
+        <a href="https://firefly.adobe.com" target="_blank" rel="noopener noreferrer" class="group flex flex-col justify-between p-2.5 rounded-xl border border-studio-200 hover:border-rose-400 bg-white hover:bg-rose-50/20 transition shadow-sm">
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">Editing</span>
+              <span class="text-[10px] text-studio-400 group-hover:text-rose-600 transition">↗</span>
+            </div>
+            <div class="text-xs font-bold text-studio-800 group-hover:text-rose-600 transition truncate">Adobe Firefly</div>
+            <div class="text-[11px] text-studio-500 line-clamp-1">Generative inpainting fill</div>
+          </div>
+          <span class="mt-2 text-[11px] font-semibold text-studio-700 group-hover:text-rose-600 flex items-center justify-between">
+            Explore Tools <span class="text-xs">→</span>
+          </span>
+        </a>
+
+        <!-- Tool 5: RunwayML / Pika Video -->
+        <a href="https://runwayml.com" target="_blank" rel="noopener noreferrer" class="group flex flex-col justify-between p-2.5 rounded-xl border border-studio-200 hover:border-emerald-400 bg-white hover:bg-emerald-50/20 transition shadow-sm">
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">Motion Video</span>
+              <span class="text-[10px] text-studio-400 group-hover:text-emerald-600 transition">↗</span>
+            </div>
+            <div class="text-xs font-bold text-studio-800 group-hover:text-emerald-600 transition truncate">Runway Gen-3</div>
+            <div class="text-[11px] text-studio-500 line-clamp-1">Animate character renders</div>
+          </div>
+          <span class="mt-2 text-[11px] font-semibold text-studio-700 group-hover:text-emerald-600 flex items-center justify-between">
+            Turn to Video <span class="text-xs">→</span>
+          </span>
+        </a>
+
+        <!-- Tool 6: PromptBase Guides & Curations -->
+        <a href="https://promptbase.com" target="_blank" rel="noopener noreferrer" class="group flex flex-col justify-between p-2.5 rounded-xl border border-studio-200 hover:border-amber-400 bg-white hover:bg-amber-50/20 transition shadow-sm">
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">Marketplace</span>
+              <span class="text-[10px] text-studio-400 group-hover:text-amber-600 transition">↗</span>
+            </div>
+            <div class="text-xs font-bold text-studio-800 group-hover:text-amber-600 transition truncate">PromptBase Pro</div>
+            <div class="text-[11px] text-studio-500 line-clamp-1">Masterstyle prompt packs</div>
+          </div>
+          <span class="mt-2 text-[11px] font-semibold text-studio-700 group-hover:text-amber-600 flex items-center justify-between">
+            Get Presets <span class="text-xs">→</span>
+          </span>
+        </a>
+
+      </div>
+    </div>
+  </aside>
+
+  <!-- Re-open Floating Drawer Button -->
+  <div id="drawerTab" class="fixed bottom-3 right-6 z-30 hidden animate-bounce">
+    <button id="btnOpenDrawer" class="flex items-center gap-2 px-4 py-2 rounded-full bg-studio-900 text-white text-xs font-bold shadow-lg hover:bg-studio-800 transition border border-studio-700">
+      <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+      <span>Recommended Creator Tools</span>
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Notification Toast Box -->
+  <div id="toastBox" class="fixed top-20 right-6 z-50 transform translate-y-[-20px] opacity-0 pointer-events-none transition-all duration-200 flex items-center gap-2.5 px-4 py-3 rounded-xl bg-studio-900 text-white text-xs font-semibold shadow-xl border border-studio-700">
+    <svg id="toastIcon" class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+    </svg>
+    <span id="toastMessage">Prompt copied to clipboard!</span>
+  </div>
+
+  <script>
+    (function() {
+      // Complete field definitions including new art style and environmental background
+      const fields = [
+        'trait_artstyle',
+        'trait_gender',
+        'trait_age',
+        'trait_ethnicity',
+        'trait_skintone',
+        'trait_faceshape',
+        'trait_eyes',
+        'trait_nose',
+        'trait_lips',
+        'trait_marks',
+        'trait_hairlength',
+        'trait_hairtexture',
+        'trait_haircolor',
+        'trait_height',
+        'trait_build',
+        'trait_clothing_style',
+        'trait_garments',
+        'trait_wardrobe_palette',
+        'trait_environment',
+        'trait_framing',
+        'trait_lens',
+        'trait_lighting',
+        'param_ar',
+        'param_engine'
+      ];
+
+      // Archetype preset configurations
+      const ARCHETYPES = {
+        cyberpunk_hacker: {
+          name: 'Kaelen Vex',
+          trait_artstyle: 'high-end contemporary Japanese anime aesthetic, crisp cel-shaded linework, radiant Makoto Shinkai inspired color palette, exquisite detail',
+          trait_gender: 'androgynous person',
+          trait_age: 'in their late 20s (around 28 years old)',
+          trait_ethnicity: 'East Asian descent',
+          trait_skintone: 'luminous porcelain skin with cool pink undertones',
+          trait_faceshape: 'sharp aristocratic facial geometry with prominent bone structure',
+          trait_eyes: 'slate gray reflective eyes with intriguing depth',
+          trait_nose: 'slender delicate bridge with sharp refined tip',
+          trait_lips: 'natural full lips with a defined cupid\'s bow and relaxed neutral demeanor',
+          trait_marks: 'a small discreet silver geometric stud in left nostril and ear cartilage piercings',
+          trait_hairlength: 'cropped textured pixie cut with tapered neck',
+          trait_hairtexture: 'tousled windswept texture with intentional flyaways',
+          trait_haircolor: 'deep raven jet-black hair with subtle midnight blue gloss',
+          trait_height: 'tall stature (approximately 185cm / 6\'1\'\') with poised, commanding posture',
+          trait_build: 'athletic, toned build with lean defined muscles and healthy posture',
+          trait_clothing_style: 'utilitarian tactical cyberpunk field wear',
+          trait_garments: 'wearing an oversized heavyweight washed black hoodie, utility cargo trousers with nylon webbing straps, and designer chunky sneakers',
+          trait_wardrobe_palette: 'in monochromatic obsidian and slate black with matte silver hardware and a sleek leather cuff',
+          trait_environment: 'situated in a vibrant cityscape background with bustling downtown neon streets, modern skyscrapers, and reflective evening pavements',
+          trait_framing: 'cinematic 3/4 length fashion shot with dynamic stance',
+          trait_lens: 'shot on Leica 50mm Summilux lens with soft filmic roll-off',
+          trait_lighting: 'atmospheric moody twilight with cool blue tones complemented by subtle magenta and cyan practical neon reflections'
+        },
+        nordic_detective: {
+          name: 'Inspector Astrid Lind',
+          trait_artstyle: 'hyperrealistic editorial photography with authentic natural skin texture, micro-details, and realistic depth of field',
+          trait_gender: 'woman',
+          trait_age: 'in their early 40s (around 42 years old)',
+          trait_ethnicity: 'Northern European / Scandinavian descent',
+          trait_skintone: 'fair alabaster complexion with neutral undertones',
+          trait_faceshape: 'high sculptured cheekbones with an angular chiseled jawline',
+          trait_eyes: 'piercing ice-blue eyes with dark limbal rings and calm expression',
+          trait_nose: 'straight refined aquiline nose with subtle bridge contour',
+          trait_lips: 'thin refined lips pressed in a stoic, resolute posture',
+          trait_marks: 'light constellation of natural sun freckles across nose and cheekbones',
+          trait_hairlength: 'shoulder-length layered cut framing the face',
+          trait_hairtexture: 'loose beach waves with soft organic movement',
+          trait_haircolor: 'ash platinum silver hair with cool smoky undertones',
+          trait_height: 'tall stature (approximately 185cm / 6\'1\'\') with poised, commanding posture',
+          trait_build: 'slender, high-fashion runway proportions with long limbs and narrow waist',
+          trait_clothing_style: 'vintage heritage tailored tweed and woolens',
+          trait_garments: 'wearing an ultra-soft oat-milk cashmere crewneck sweater layered over relaxed-fit brushed modal drawstring trousers',
+          trait_wardrobe_palette: 'in a curated neutral palette of warm camel, ivory, and soft charcoal, accented with a minimalist brushed gold watch and signet ring',
+          trait_environment: 'situated inside a modern industrial warehouse loft featuring exposed raw red brick, steel casement windows, and polished concrete floors',
+          trait_framing: 'waist-up medium portrait composition with natural breathing room',
+          trait_lens: 'shot on Hasselblad medium format camera with 80mm lens, rendering hyper-realistic pore details and micro-contrast',
+          trait_lighting: 'illuminated by soft diffused studio north-facing daylight with a gentle silver reflector fill'
+        },
+        editorial_model: {
+          name: 'Amara Diop',
+          trait_artstyle: 'hyperrealistic editorial photography with authentic natural skin texture, micro-details, and realistic depth of field',
+          trait_gender: 'transgender woman',
+          trait_age: 'in their early 20s (around 22 years old)',
+          trait_ethnicity: 'Black African diaspora heritage',
+          trait_skintone: 'glossy obsidian deep skin tone with cool neutral undertones',
+          trait_faceshape: 'sharp aristocratic facial geometry with prominent bone structure',
+          trait_eyes: 'warm espresso dark brown eyes with soft, inviting gaze',
+          trait_nose: 'slender delicate bridge with sharp refined tip',
+          trait_lips: 'plump matte lips resting in a subtle, knowing smirk',
+          trait_marks: 'clean, pore-level authentic skin texture with natural microscopic imperfections',
+          trait_hairlength: 'intricate high crown box braids flowing past shoulders',
+          trait_hairtexture: 'silky bone-straight strands with glossy light reflection',
+          trait_haircolor: 'deep raven jet-black hair with subtle midnight blue gloss',
+          trait_height: 'towering tall frame (approximately 193cm / 6\'4\'\') with broad shoulders',
+          trait_build: 'slender, high-fashion runway proportions with long limbs and narrow waist',
+          trait_clothing_style: 'high-fashion gala evening wear',
+          trait_garments: 'wearing an exquisite emerald green silk charmeuse slip gown with an open cross-back and fluid drape',
+          trait_wardrobe_palette: 'in rich jewel tones of deep sapphire blue and burnished bronze, finished with delicate emerald earrings',
+          trait_environment: 'set against a minimalist plain light photography studio backdrop with a clean seamless bone-white cyclorama curve',
+          trait_framing: 'full-length editorial body shot showcasing entire outfit and posture',
+          trait_lens: 'shot on 85mm f/1.4 prime lens with silky cream bokeh and shallow depth of field',
+          trait_lighting: 'bright high-key commercial editorial lighting with pristine shadow falloff'
+        },
+        tokyo_tech_exec: {
+          name: 'Kenjiro Sato',
+          trait_artstyle: 'hyperrealistic editorial photography with authentic natural skin texture, micro-details, and realistic depth of field',
+          trait_gender: 'man',
+          trait_age: 'in their mid-30s (around 35 years old)',
+          trait_ethnicity: 'East Asian descent',
+          trait_skintone: 'warm ivory skin tone with soft peach hues',
+          trait_faceshape: 'strong square jawline with well-defined chin',
+          trait_eyes: 'monolid dark obsidian eyes with crisp defined lashes',
+          trait_nose: 'straight refined aquiline nose with subtle bridge contour',
+          trait_lips: 'medium balanced lips with gentle, approachable expression',
+          trait_marks: 'clean architectural modern wireframe titanium spectacles resting on bridge',
+          trait_hairlength: 'modern messy textured French crop with skin fade',
+          trait_hairtexture: 'coarse, dense, slightly rebellious strands',
+          trait_haircolor: 'deep raven jet-black hair with subtle midnight blue gloss',
+          trait_height: 'average height (approximately 172cm / 5\'8\'\') with natural relaxed stance',
+          trait_build: 'athletic, toned build with lean defined muscles and healthy posture',
+          trait_clothing_style: 'modern business executive tailoring',
+          trait_garments: 'wearing a tailored bespoke charcoal double-breasted wool blazer with satin lapels, crisp spread-collar dress shirt, and tailored trousers',
+          trait_wardrobe_palette: 'in monochromatic obsidian and slate black with matte silver hardware and a sleek leather cuff',
+          trait_environment: 'situated at a charming rainy urban sidewalk cafe with blurred metropolitan street life and cafe bistro chairs',
+          trait_framing: 'waist-up medium portrait composition with natural breathing room',
+          trait_lens: 'shot on 50mm f/1.2 lens providing organic, true-to-eye human perspective',
+          trait_lighting: 'dramatic high-contrast chiaroscuro Rembrandt lighting with subtle ambient shadows'
+        },
+        coastal_surfer: {
+          name: 'Kai Brennan',
+          trait_artstyle: 'hyperrealistic editorial photography with authentic natural skin texture, micro-details, and realistic depth of field',
+          trait_gender: 'non-binary person with gender-neutral styling',
+          trait_age: 'in their late 20s (around 28 years old)',
+          trait_ethnicity: 'Pacific Islander heritage',
+          trait_skintone: 'golden sun-kissed honey olive complexion',
+          trait_faceshape: 'soft oval facial structure with gentle jaw contour',
+          trait_eyes: 'almond-shaped deep hazel eyes with golden flecks and an intense, focused gaze',
+          trait_nose: 'broad, beautifully sculpted bridge and wide soft nostrils',
+          trait_lips: 'wide expressive mouth with natural rosy pigmentation',
+          trait_marks: 'light constellation of natural sun freckles across nose and cheekbones',
+          trait_hairlength: 'shoulder-length layered cut framing the face',
+          trait_hairtexture: 'loose beach waves with soft organic movement',
+          trait_haircolor: 'warm honey blonde hair with champagne sun highlights',
+          trait_height: 'tall stature (approximately 185cm / 6\'1\'\') with poised, commanding posture',
+          trait_build: 'athletic, toned build with lean defined muscles and healthy posture',
+          trait_clothing_style: 'resort luxury swimwear & coastal beachwear',
+          trait_garments: 'wearing high-performance matte swim trunks with a tropical botanical micro-print and unbuttoned linen resort camp shirt',
+          trait_wardrobe_palette: 'in muted earth tones of sage green, terracotta, and ecru, complemented by subtle layered silver chains',
+          trait_environment: 'situated outdoors in an open golden hour coastal meadow overlooking calm turquoise sea waters and sea oats',
+          trait_framing: 'environmental medium-long shot contextualized in space',
+          trait_lens: 'shot on 35mm f/1.8 documentary prime lens for realistic environmental context',
+          trait_lighting: 'warm golden hour sunset backlighting creating radiant edge rim light on hair'
+        },
+        vintage_scholar: {
+          name: 'Prof. Julian Sterling',
+          trait_artstyle: 'classic 1940s film noir black and white photography, authentic 35mm silver gelatin print, deep analog film grain, dramatic high-contrast moody lighting',
+          trait_gender: 'man',
+          trait_age: 'distinguished mid-50s with subtle silver streaks',
+          trait_ethnicity: 'Celtic / Irish heritage with subtle ruddy tones',
+          trait_skintone: 'fair alabaster complexion with neutral undertones',
+          trait_faceshape: 'high sculptured cheekbones with an angular chiseled jawline',
+          trait_eyes: 'hooded amber-honey eyes with contemplative look',
+          trait_nose: 'distinctive Roman nose with strong character bridge',
+          trait_lips: 'medium balanced lips with gentle, approachable expression',
+          trait_marks: 'neatly groomed, trimmed short beard with clean perimeter lines',
+          trait_hairlength: 'swept-back pompadour with short clean sides',
+          trait_hairtexture: 'coarse, dense, slightly rebellious strands',
+          trait_haircolor: 'distinguished salt-and-pepper hair with steel silver temples',
+          trait_height: 'tall stature (approximately 185cm / 6\'1\'\') with poised, commanding posture',
+          trait_build: 'natural everyday body shape with comfortable proportions',
+          trait_clothing_style: 'vintage heritage tailored tweed and woolens',
+          trait_garments: 'wearing an unbuttoned crisp raw-linen shirt over a ribbed white cotton tank, paired with pleated sand-colored chinos',
+          trait_wardrobe_palette: 'in a curated neutral palette of warm camel, ivory, and soft charcoal, accented with a minimalist brushed gold watch and signet ring',
+          trait_environment: 'situated in a quiet rustic indoor home library nook with floor-to-ceiling mahogany bookshelves and soft warm reading lamplight',
+          trait_framing: 'waist-up medium portrait composition with natural breathing room',
+          trait_lens: 'shot on 85mm f/1.4 prime lens with silky cream bokeh and shallow depth of field',
+          trait_lighting: 'dramatic high-contrast chiaroscuro Rembrandt lighting with subtle ambient shadows'
+        },
+        pop_art_rebel: {
+          name: 'Roxy Nova',
+          trait_artstyle: 'bold Pop Art style inspired by Roy Lichtenstein and Andy Warhol, prominent halftone Ben-Day dots, strong graphic silkscreen outlines, and vivid saturated contrasting tones',
+          trait_gender: 'woman',
+          trait_age: 'in their early 20s (around 22 years old)',
+          trait_ethnicity: 'Multi-ethnic mixed descent',
+          trait_skintone: 'warm ivory skin tone with soft peach hues',
+          trait_faceshape: 'delicate heart-shaped face with a tapered chin',
+          trait_eyes: 'striking emerald green eyes with expressive arched brows',
+          trait_nose: 'button nose with a softly upturned tip',
+          trait_lips: 'plump matte lips resting in a subtle, knowing smirk',
+          trait_marks: 'subtle beauty mark just above the upper right lip and deep symmetrical smile dimples',
+          trait_hairlength: 'sharp blunt bob cut hitting exactly at jawline',
+          trait_hairtexture: 'silky bone-straight strands with glossy light reflection',
+          trait_haircolor: 'pastel dusty lilac rose hair with muted tone',
+          trait_height: 'average height (approximately 172cm / 5\'8\'\') with natural relaxed stance',
+          trait_build: 'athletic, toned build with lean defined muscles and healthy posture',
+          trait_clothing_style: 'trendy oversized urban streetwear',
+          trait_garments: 'wearing a rugged distressed lambskin leather biker jacket with silver hardware over a soft black crewneck',
+          trait_wardrobe_palette: 'in crisp high-contrast optic white and cobalt blue with vibrant clean accents',
+          trait_environment: 'set against an ultra-clean chroma key solid green screen backdrop for visual effects compositing',
+          trait_framing: 'waist-up medium portrait composition with natural breathing room',
+          trait_lens: 'shot on 50mm f/1.2 lens providing organic, true-to-eye human perspective',
+          trait_lighting: 'bright high-key commercial editorial lighting with pristine shadow falloff'
+        },
+        fantasy_oil_portrait: {
+          name: 'Lady Genevieve',
+          trait_artstyle: 'traditional classical oil painting on canvas, expressive impasto brushwork, rich layered glaze textures, Rembrandt chiaroscuro lighting, masterwork gallery aesthetic',
+          trait_gender: 'woman',
+          trait_age: 'in their late 20s (around 28 years old)',
+          trait_ethnicity: 'Mediterranean heritage (Southern European)',
+          trait_skintone: 'warm ivory skin tone with soft peach hues',
+          trait_faceshape: 'sharp aristocratic facial geometry with prominent bone structure',
+          trait_eyes: 'warm espresso dark brown eyes with soft, inviting gaze',
+          trait_nose: 'straight refined aquiline nose with subtle bridge contour',
+          trait_lips: 'natural full lips with a defined cupid\'s bow and relaxed neutral demeanor',
+          trait_marks: 'clean, pore-level authentic skin texture with natural microscopic imperfections',
+          trait_hairlength: 'long cascading tresses reaching mid-back',
+          trait_hairtexture: 'loose beach waves with soft organic movement',
+          trait_haircolor: 'rich espresso dark chocolate brown hair',
+          trait_height: 'tall stature (approximately 185cm / 6\'1\'\') with poised, commanding posture',
+          trait_build: 'curvaceous, voluptuous hourglass figure with well-proportioned curves',
+          trait_clothing_style: 'high-fashion gala evening wear',
+          trait_garments: 'wearing an exquisite emerald green silk charmeuse slip gown with an open cross-back and fluid drape',
+          trait_wardrobe_palette: 'in rich jewel tones of deep sapphire blue and burnished bronze, finished with delicate emerald earrings',
+          trait_environment: 'set against a plain dark studio backdrop with low-key charcoal seamless paper and subtle gentle vignette',
+          trait_framing: 'waist-up medium portrait composition with natural breathing room',
+          trait_lens: 'shot on 85mm f/1.4 prime lens with silky cream bokeh and shallow depth of field',
+          trait_lighting: 'dramatic high-contrast chiaroscuro Rembrandt lighting with subtle ambient shadows'
+        }
+      };
+
+      // Toast notification helper
+      function showToast(message, isError = false) {
+        const toast = document.getElementById('toastBox');
+        const toastMsg = document.getElementById('toastMessage');
+        const toastIcon = document.getElementById('toastIcon');
+        
+        toastMsg.textContent = message;
+        if (isError) {
+          toastIcon.classList.remove('text-emerald-400');
+          toastIcon.classList.add('text-rose-400');
+        } else {
+          toastIcon.classList.remove('text-rose-400');
+          toastIcon.classList.add('text-emerald-400');
+        }
+        
+        toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-[-20px]');
+        toast.classList.add('opacity-100', 'translate-y-0');
+        
+        setTimeout(() => {
+          toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-[-20px]');
+          toast.classList.remove('opacity-100', 'translate-y-0');
+        }, 2600);
+      }
+
+      // Safe clipboard copy
+      function copyToClipboard(text, successMsg = 'Copied to clipboard!') {
+        if (!text) return;
+        try {
+          const tempInput = document.createElement('textarea');
+          tempInput.value = text;
+          tempInput.style.position = 'fixed';
+          tempInput.style.left = '-9999px';
+          document.body.appendChild(tempInput);
+          tempInput.focus();
+          tempInput.select();
+          const successful = document.execCommand('copy');
+          document.body.removeChild(tempInput);
+          if (successful) {
+            showToast(successMsg);
+          } else {
+            showToast('Unable to copy', true);
+          }
+        } catch (err) {
+          showToast('Copy error', true);
+        }
+      }
+
+      function compilePrompt() {
+        const charName = document.getElementById('characterName').value.trim();
+        const artstyle = document.getElementById('trait_artstyle').value;
+        const gender = document.getElementById('trait_gender').value;
+        const age = document.getElementById('trait_age').value;
+        const ethnicity = document.getElementById('trait_ethnicity').value;
+        const skintone = document.getElementById('trait_skintone').value;
+
+        const faceshape = document.getElementById('trait_faceshape').value;
+        const eyes = document.getElementById('trait_eyes').value;
+        const nose = document.getElementById('trait_nose').value;
+        const lips = document.getElementById('trait_lips').value;
+        const marks = document.getElementById('trait_marks').value;
+
+        const hairlength = document.getElementById('trait_hairlength').value;
+        const hairtexture = document.getElementById('trait_hairtexture').value;
+        const haircolor = document.getElementById('trait_haircolor').value;
+
+        const height = document.getElementById('trait_height').value;
+        const build = document.getElementById('trait_build').value;
+
+        const styleGenre = document.getElementById('trait_clothing_style').value;
+        const garments = document.getElementById('trait_garments').value;
+        const palette = document.getElementById('trait_wardrobe_palette').value;
+
+        const environment = document.getElementById('trait_environment').value;
+        const framing = document.getElementById('trait_framing').value;
+        const lens = document.getElementById('trait_lens').value;
+        const lighting = document.getElementById('trait_lighting').value;
+
+        const ar = document.getElementById('param_ar').value;
+        const engine = document.getElementById('param_engine').value;
+
+        // Structured Syntactic Sections (Engineered for seed consistency)
+        // 1. Style & Medium Anchor
+        const mediumToken = `An artwork rendered in ${artstyle}.`;
+
+        // 2. Subject Identity Anchor
+        let subjectToken = charName ? `A definitive consistent character portrayal of ${charName}, ` : 'A definitive character portrayal of ';
+        subjectToken += `a ${gender} ${age} of ${ethnicity}, featuring ${skintone}.`;
+
+        // 3. Facial Anatomy & Topology
+        const faceToken = `Facial architecture: ${faceshape}, ${eyes}, ${nose}, ${lips}. Distinguishing details: ${marks}.`;
+
+        // 4. Hair Anatomy
+        const hairToken = `Hairstyle: ${hairlength}, ${hairtexture}, dyed in ${haircolor}.`;
+
+        // 5. Physique & Silhouette
+        const bodyToken = `Physique: ${height}, ${build}.`;
+
+        // 6. Fashion & Wardrobe
+        const wardrobeToken = `Wardrobe & styling: ${styleGenre}, ${garments}, styled ${palette}.`;
+
+        // 7. Background & Environment
+        const envToken = `Environment & staging: ${environment}.`;
+
+        // 8. Camera, Framing & Lighting
+        const cameraToken = `Framing & optics: ${framing}, ${lens}. Staging & atmosphere: ${lighting}.`;
+
+        // Assemble Full Prompt String
+        let promptString = `${mediumToken} ${subjectToken} ${faceToken} ${hairToken} ${bodyToken} ${wardrobeToken} ${envToken} ${cameraToken}`;
+
+        if (engine) {
+          promptString += ` ${engine}`;
+        }
+        if (ar) {
+          promptString += ` ${ar}`;
+        }
+
+        // Clean double spaces
+        promptString = promptString.replace(/\s\s+/g, ' ').trim();
+
+        // Output to console
+        const promptBox = document.getElementById('promptOutput');
+        promptBox.value = promptString;
+
+        // Approximate token calculation (words * 1.33)
+        const wordCount = promptString.split(/\s+/).length;
+        const approxTokens = Math.round(wordCount * 1.3);
+        document.getElementById('tokenCount').textContent = `~${approxTokens} tokens (${wordCount} words)`;
+
+        // Update pills
+        updateTraitPills();
+      }
+
+      function updateTraitPills() {
+        const pillsContainer = document.getElementById('characterPills');
+        pillsContainer.innerHTML = '';
+
+        const keys = [
+          { id: 'trait_artstyle', label: 'Style' },
+          { id: 'trait_gender', label: 'Gender' },
+          { id: 'trait_ethnicity', label: 'Heritage' },
+          { id: 'trait_environment', label: 'Setting' },
+          { id: 'trait_clothing_style', label: 'Fashion' },
+          { id: 'param_ar', label: 'Ratio' }
+        ];
+
+        keys.forEach(k => {
+          const el = document.getElementById(k.id);
+          if (el && el.value) {
+            const pill = document.createElement('span');
+            pill.className = 'inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-studio-100 text-studio-700 border border-studio-200 truncate max-w-[200px]';
+            const textValue = el.options ? el.options[el.selectedIndex].text : el.value;
+            pill.textContent = `${k.label}: ${textValue}`;
+            pillsContainer.appendChild(pill);
+          }
+        });
+      }
+
+      const STORAGE_KEY = 'personacraft_studio_30_slots_v2';
+
+      function getSlotsFromStorage() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return Array(30).fill(null);
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length === 30) {
+            return parsed;
+          }
+          const slots = Array(30).fill(null);
+          for (let i = 0; i < Math.min(30, parsed.length); i++) {
+            slots[i] = parsed[i];
+          }
+          return slots;
+        } catch (e) {
+          console.warn('Storage read exception:', e);
+          return Array(30).fill(null);
+        }
+      }
+
+      function saveSlotsToStorage(slots) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(slots));
+          updateVaultUI();
+        } catch (e) {
+          showToast('Failed to save to local storage', true);
+        }
+      }
+
+      function getCurrentFormData() {
+        const data = {
+          name: document.getElementById('characterName').value.trim() || 'Untitled Persona',
+          timestamp: new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+          traits: {}
+        };
+        fields.forEach(f => {
+          const el = document.getElementById(f);
+          if (el) data.traits[f] = el.value;
+        });
+        return data;
+      }
+
+      function loadFormData(data) {
+        if (!data || !data.traits) return;
+        document.getElementById('characterName').value = data.name === 'Untitled Persona' ? '' : data.name;
+        fields.forEach(f => {
+          const el = document.getElementById(f);
+          if (el && data.traits[f] !== undefined) {
+            el.value = data.traits[f];
+          }
+        });
+        compilePrompt();
+      }
+
+      function saveToSlot(slotIndex) {
+        const slots = getSlotsFromStorage();
+        const characterData = getCurrentFormData();
+        slots[slotIndex] = characterData;
+        saveSlotsToStorage(slots);
+        showToast(`Saved to Slot #${slotIndex + 1}: ${characterData.name}`);
+      }
+
+      function loadFromSlot(slotIndex) {
+        const slots = getSlotsFromStorage();
+        const data = slots[slotIndex];
+        if (!data) {
+          showToast(`Slot #${slotIndex + 1} is empty!`, true);
+          return;
+        }
+        loadFormData(data);
+        showToast(`Loaded Slot #${slotIndex + 1}: ${data.name}`);
+      }
+
+      function clearSlot(slotIndex) {
+        const slots = getSlotsFromStorage();
+        slots[slotIndex] = null;
+        saveSlotsToStorage(slots);
+        showToast(`Cleared Slot #${slotIndex + 1}`);
+      }
+
+      function updateVaultUI() {
+        const slots = getSlotsFromStorage();
+        let populatedCount = 0;
+
+        const quickSelect = document.getElementById('quickSlotSelect');
+        const previousVal = quickSelect.value;
+        quickSelect.innerHTML = '';
+
+        const grid = document.getElementById('slotsGrid');
+        grid.innerHTML = '';
+
+        slots.forEach((slot, index) => {
+          const slotNum = index + 1;
+          const isPopulated = !!slot;
+          if (isPopulated) populatedCount++;
+
+          const opt = document.createElement('option');
+          opt.value = index;
+          opt.textContent = isPopulated 
+            ? `Slot ${slotNum}: ${slot.name} (${slot.traits?.trait_gender || 'Character'})` 
+            : `Slot ${slotNum}: [Empty]`;
+          quickSelect.appendChild(opt);
+
+          const card = document.createElement('div');
+          card.className = `p-3.5 rounded-2xl border transition relative flex flex-col justify-between ${
+            isPopulated 
+              ? 'bg-white border-studio-200 hover:border-indigo-400 shadow-sm' 
+              : 'bg-white/40 border-dashed border-studio-200 text-studio-400'
+          }`;
+
+          if (isPopulated) {
+            card.innerHTML = `
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">Slot ${slotNum}</span>
+                  <span class="text-[10px] text-studio-600">${slot.timestamp || ''}</span>
+                </div>
+                <h4 class="text-sm font-bold text-studio-900 truncate mb-1">${slot.name}</h4>
+                <p class="text-xs text-studio-500 line-clamp-2 leading-tight">
+                  ${slot.traits?.trait_ethnicity || ''} · ${slot.traits?.trait_gender || ''} · ${slot.traits?.trait_clothing_style || ''}
+                </p>
+              </div>
+
+              <div class="mt-3 pt-2.5 border-t border-studio-100 flex items-center justify-between gap-1">
+                <button class="btn-modal-load flex-1 px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition" data-index="${index}">
+                  Load
+                </button>
+                <button class="btn-modal-overwrite px-2 py-1.5 rounded-lg border border-studio-200 hover:bg-studio-50 text-studio-700 text-xs font-medium transition" data-index="${index}" title="Overwrite this slot with current prompt">
+                  Overwrite
+                </button>
+                <button class="btn-modal-clear w-7 h-7 rounded-lg text-studio-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition" data-index="${index}" title="Clear slot">
+                  ✕
+                </button>
+              </div>
+            `;
+          } else {
+            card.innerHTML = `
+              <div class="py-3 text-center">
+                <span class="text-xs font-bold text-studio-400">Slot ${slotNum}</span>
+                <p class="text-xs text-studio-400 mt-1">[ Empty Memory Slot ]</p>
+              </div>
+              <button class="btn-modal-save-empty w-full py-1.5 rounded-lg border border-studio-200 hover:border-indigo-400 hover:bg-indigo-50/50 text-studio-600 text-xs font-semibold transition" data-index="${index}">
+                + Save Current Here
+              </button>
+            `;
+          }
+
+          grid.appendChild(card);
+        });
+
+        if (previousVal !== '') {
+          quickSelect.value = previousVal;
+        }
+
+        document.getElementById('savedCountBadge').textContent = populatedCount;
+      }
+
+      function randomizeAllTraits() {
+        fields.forEach(f => {
+          if (f.startsWith('param_')) return;
+          const select = document.getElementById(f);
+          if (select && select.options && select.options.length > 0) {
+            const randomIndex = Math.floor(Math.random() * select.options.length);
+            select.selectedIndex = randomIndex;
+          }
+        });
+
+        const randomFirstNames = ['Zara', 'Kael', 'Elena', 'Dante', 'Sora', 'Nia', 'Orion', 'Siddharth', 'Mei', 'Liam', 'Freja'];
+        const randomLastNames = ['Vance', 'Chen', 'Novak', 'Sterling', 'Moreau', 'O\'Connor', 'Kim', 'Patel', 'Lund'];
+        const randomName = randomFirstNames[Math.floor(Math.random() * randomFirstNames.length)] + ' ' +
+                           randomLastNames[Math.floor(Math.random() * randomLastNames.length)];
+        document.getElementById('characterName').value = randomName;
+        document.getElementById('presetSelector').value = '';
+
+        compilePrompt();
+        showToast('Generated randomized character traits!');
+      }
+
+      function resetAllTraits() {
+        document.getElementById('characterName').value = '';
+        document.getElementById('presetSelector').value = '';
+        fields.forEach(f => {
+          const el = document.getElementById(f);
+          if (el && el.options) {
+            el.selectedIndex = 0;
+          }
+        });
+        compilePrompt();
+        showToast('Reset all traits to studio defaults.');
+      }
+
+      function attachEventListeners() {
+        fields.forEach(f => {
+          const el = document.getElementById(f);
+          if (el) {
+            el.addEventListener('change', compilePrompt);
+          }
+        });
+
+        document.getElementById('characterName').addEventListener('input', compilePrompt);
+
+        // Archetype Preset selection
+        document.getElementById('presetSelector').addEventListener('change', function() {
+          const key = this.value;
+          if (key && ARCHETYPES[key]) {
+            const preset = ARCHETYPES[key];
+            document.getElementById('characterName').value = preset.name;
+            Object.keys(preset).forEach(k => {
+              if (k !== 'name') {
+                const el = document.getElementById(k);
+                if (el) el.value = preset[k];
+              }
+            });
+            compilePrompt();
+            showToast(`Loaded archetype preset: ${preset.name}`);
+          }
+        });
+
+        // Top action buttons
+        document.getElementById('btnRandomizeTop').addEventListener('click', randomizeAllTraits);
+        document.getElementById('btnResetTop').addEventListener('click', resetAllTraits);
+
+        // Copy prompt buttons
+        document.getElementById('btnCopyPrompt').addEventListener('click', () => {
+          const text = document.getElementById('promptOutput').value;
+          copyToClipboard(text, 'Compiled character prompt copied!');
+        });
+
+        document.getElementById('btnCopyNegative').addEventListener('click', () => {
+          const neg = document.getElementById('negativePrompt').value;
+          copyToClipboard(neg, 'Negative prompt copied!');
+        });
+
+        // Quick slot buttons in right panel
+        document.getElementById('btnQuickSaveSlot').addEventListener('click', () => {
+          const slotIndex = parseInt(document.getElementById('quickSlotSelect').value || '0', 10);
+          saveToSlot(slotIndex);
+        });
+
+        document.getElementById('btnSaveToSelected').addEventListener('click', () => {
+          const slotIndex = parseInt(document.getElementById('quickSlotSelect').value || '0', 10);
+          saveToSlot(slotIndex);
+        });
+
+        document.getElementById('btnLoadFromSelected').addEventListener('click', () => {
+          const slotIndex = parseInt(document.getElementById('quickSlotSelect').value || '0', 10);
+          loadFromSlot(slotIndex);
+        });
+
+        // Modal opening & closing
+        const vaultModal = document.getElementById('vaultModal');
+        document.getElementById('btnOpenVault').addEventListener('click', () => {
+          vaultModal.classList.remove('hidden');
+        });
+        document.getElementById('btnShowAllSlots').addEventListener('click', () => {
+          vaultModal.classList.remove('hidden');
+        });
+        document.getElementById('btnCloseVault').addEventListener('click', () => {
+          vaultModal.classList.add('hidden');
+        });
+        vaultModal.addEventListener('click', (e) => {
+          if (e.target === vaultModal) vaultModal.classList.add('hidden');
+        });
+
+        // Delegated clicks inside Modal 30-Slot Grid
+        document.getElementById('slotsGrid').addEventListener('click', (e) => {
+          const loadBtn = e.target.closest('.btn-modal-load');
+          if (loadBtn) {
+            const idx = parseInt(loadBtn.getAttribute('data-index'), 10);
+            loadFromSlot(idx);
+            vaultModal.classList.add('hidden');
+            return;
+          }
+
+          const overwriteBtn = e.target.closest('.btn-modal-overwrite');
+          if (overwriteBtn) {
+            const idx = parseInt(overwriteBtn.getAttribute('data-index'), 10);
+            saveToSlot(idx);
+            return;
+          }
+
+          const clearBtn = e.target.closest('.btn-modal-clear');
+          if (clearBtn) {
+            const idx = parseInt(clearBtn.getAttribute('data-index'), 10);
+            clearSlot(idx);
+            return;
+          }
+
+          const saveEmptyBtn = e.target.closest('.btn-modal-save-empty');
+          if (saveEmptyBtn) {
+            const idx = parseInt(saveEmptyBtn.getAttribute('data-index'), 10);
+            saveToSlot(idx);
+            return;
+          }
+        });
+
+        // Clear all slots
+        document.getElementById('btnClearAllSlots').addEventListener('click', () => {
+          saveSlotsToStorage(Array(30).fill(null));
+          showToast('Cleared all 30 slots');
+        });
+
+        // Export JSON file
+        document.getElementById('btnExportSlots').addEventListener('click', () => {
+          const slots = getSlotsFromStorage();
+          const jsonString = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(slots, null, 2));
+          const dlAnchor = document.createElement('a');
+          dlAnchor.setAttribute("href", jsonString);
+          dlAnchor.setAttribute("download", `personacraft_characters_backup_${new Date().toISOString().slice(0,10)}.json`);
+          document.body.appendChild(dlAnchor);
+          dlAnchor.click();
+          dlAnchor.remove();
+          showToast('Exported 30-slot character vault!');
+        });
+
+        // Import JSON file
+        document.getElementById('importFileInput').addEventListener('change', function(e) {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            try {
+              const imported = JSON.parse(event.target.result);
+              if (Array.isArray(imported)) {
+                const standardized = Array(30).fill(null);
+                for (let i = 0; i < Math.min(30, imported.length); i++) {
+                  standardized[i] = imported[i];
+                }
+                saveSlotsToStorage(standardized);
+                showToast('Successfully imported character slots!');
+              } else {
+                showToast('Invalid backup file format', true);
+              }
+            } catch (err) {
+              showToast('Error reading JSON file', true);
+            }
+          };
+          reader.readAsText(file);
+          this.value = '';
+        });
+
+        // Affiliate Drawer open/dismiss
+        const affiliateDrawer = document.getElementById('affiliateDrawer');
+        const drawerTab = document.getElementById('drawerTab');
+        const btnDismissDrawer = document.getElementById('btnDismissDrawer');
+        const btnOpenDrawer = document.getElementById('btnOpenDrawer');
+
+        btnDismissDrawer.addEventListener('click', () => {
+          affiliateDrawer.classList.add('translate-y-full');
+          drawerTab.classList.remove('hidden');
+        });
+
+        btnOpenDrawer.addEventListener('click', () => {
+          affiliateDrawer.classList.remove('translate-y-full');
+          drawerTab.classList.add('hidden');
+        });
+      }
+
+      window.addEventListener('DOMContentLoaded', () => {
+        updateVaultUI();
+        compilePrompt();
+        attachEventListeners();
+      });
+
+    })();
+  </script>
+</body>
+</html>
