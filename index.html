@@ -739,18 +739,18 @@
             </button>
           </div>
 
-          <!-- Slot Quick Select Dropdown -->
-          <div class="flex items-center gap-2">
-            <select id="quickSlotSelect" class="flex-1 px-3 py-2 rounded-xl border border-studio-200 text-sm bg-white font-medium text-studio-800 focus:ring-2 focus:ring-indigo-100 outline-none">
-              <!-- Dynamically populated 1 to 30 -->
-            </select>
-            <button id="btnSaveToSelected" class="px-3.5 py-2 rounded-xl bg-studio-900 hover:bg-studio-800 text-white text-xs font-bold transition">
-              Save
-            </button>
-            <button id="btnLoadFromSelected" class="px-3.5 py-2 rounded-xl border border-studio-200 hover:bg-studio-50 text-studio-800 text-xs font-bold transition">
-              Load
-            </button>
-          </div>
+       <!-- Slot Quick Select Dropdown -->
+<div class="flex items-center gap-2 w-full">
+  <select id="quickSlotSelect" class="flex-1 min-w-0 max-w-[200px] truncate px-3 py-2 rounded-xl border border-studio-200 text-sm bg-white font-medium text-studio-800 focus:ring-2 focus:ring-indigo-100 outline-none">
+    <!-- Dynamically populated 1 to 30 -->
+  </select>
+  <button id="btnSaveToSelected" class="shrink-0 px-3.5 py-2 rounded-xl bg-studio-900 hover:bg-studio-800 text-white text-xs font-bold transition">
+    Save
+  </button>
+  <button id="btnLoadFromSelected" class="shrink-0 px-3.5 py-2 rounded-xl border border-studio-200 hover:bg-studio-50 text-studio-800 text-xs font-bold transition">
+    Load
+  </button>
+</div>
 
           <!-- Active Character Tags Pill Preview -->
           <div class="mt-4 pt-3 border-t border-studio-100">
