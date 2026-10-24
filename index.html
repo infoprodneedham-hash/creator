@@ -191,6 +191,72 @@
           Designed specifically for digital creators, 3D artists, comic illustrators, and game designers striving to break free from character drift across Midjourney, Flux, and Stable Diffusion. Build multi-dimensional human characters with anatomically anchored tokens, deliberate art direction, environmental backdrops, and seed-locking syntactic cues.
         </p>
 
+        <!-- Links to prompt gen sites here -->
+        <div class="prompt-btn-group">
+  <a href="https://sceneryprompt.app" target="_blank" rel="noopener noreferrer" class="prompt-btn">
+    sceneryprompt.app
+    <svg class="external-icon" viewBox="0 0 20 20" fill="currentColor" width="15" height="15" aria-hidden="true">
+      <path fill-rule="evenodd" d="M4.25 5.5a.75.75 0 0 0-.75.75v8.5c0 .414.336.75.75.75h8.5a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 1 1.5 0v4A2.25 2.25 0 0 1 12.75 17h-8.5A2.25 2.25 0 0 1 2 14.75v-8.5A2.25 2.25 0 0 1 4.25 4h4a.75.75 0 0 1 0 1.5h-4Zm6.5 0a.75.75 0 0 1 .75-.75h5a.75.75 0 0 1 .75.75v5a.75.75 0 0 1-1.5 0V6.56l-5.22 5.22a.75.75 0 1 1-1.06-1.06L14.44 5.5h-2.94a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+    </svg>
+  </a>
+
+  <a href="https://architectprompt.app" target="_blank" rel="noopener noreferrer" class="prompt-btn">
+    architectprompt.app
+    <svg class="external-icon" viewBox="0 0 20 20" fill="currentColor" width="15" height="15" aria-hidden="true">
+      <path fill-rule="evenodd" d="M4.25 5.5a.75.75 0 0 0-.75.75v8.5c0 .414.336.75.75.75h8.5a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 1 1.5 0v4A2.25 2.25 0 0 1 12.75 17h-8.5A2.25 2.25 0 0 1 2 14.75v-8.5A2.25 2.25 0 0 1 4.25 4h4a.75.75 0 0 1 0 1.5h-4Zm6.5 0a.75.75 0 0 1 .75-.75h5a.75.75 0 0 1 .75.75v5a.75.75 0 0 1-1.5 0V6.56l-5.22 5.22a.75.75 0 1 1-1.06-1.06L14.44 5.5h-2.94a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+    </svg>
+  </a>
+</div>
+
+<style>
+  .prompt-btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start; /* Left-aligned */
+    gap: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  .prompt-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #e2e8f0;               /* Soft slate highlight */
+    background-color: #334155;     /* Slate-700 / Blue-gray */
+    border: 1px solid #475569;     /* Slate-600 */
+    border-radius: 8px;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+    transition: all 0.2s ease-in-out;
+  }
+
+  .prompt-btn:hover {
+    background-color: #475569;     /* Slate-600 */
+    border-color: #64748b;         /* Slate-500 */
+    color: #ffffff;
+    box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.15);
+    transform: translateY(-1px);
+  }
+
+  .prompt-btn:active {
+    background-color: #1e293b;     /* Slate-800 */
+    transform: translateY(0);
+  }
+
+  .prompt-btn .external-icon {
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+  }
+
+  .prompt-btn:hover .external-icon {
+    opacity: 1;
+  }
+</style>
+        
         <!-- Guarantee & Local Storage Policy Banners -->
         <div class="mb-5 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
           <div class="p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-100 text-indigo-900 leading-relaxed">
